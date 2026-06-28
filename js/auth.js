@@ -18,7 +18,6 @@ export const AuthSystem = {
         if (lastUser) { 
             this.loginAs(lastUser); 
         } else {
-            // 如果完全沒有登入過，以訪客身份初始化首頁
             AppController.onUserSwitched();
         }
     },
@@ -38,8 +37,12 @@ export const AuthSystem = {
         this.domStatus.innerText = `👤 選手: ${username} (雲端同步中)`;
         this.domTrigger.innerText = `👤 切換帳號`;
 
-        // 等待雲端資料下載完成後，才通知主程式重新刷新畫面
-        await TrickLibrary.loadUserData(username);
+        try {
+            // 🌟 即使雲端載入稍微慢了，主程式也會先初始化完畢，不會卡死
+            await TrickLibrary.loadUserData(username);
+        } catch(e) {
+            console.error(e);
+        }
         AppController.onUserSwitched();
     }
 };

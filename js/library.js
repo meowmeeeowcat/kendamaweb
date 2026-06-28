@@ -20,13 +20,11 @@ export const TrickLibrary = {
     },
 
     init() {
-        // 綁定 DOM 元素
         this.domLibraryModal = document.getElementById('modal-library');
         this.domTrigger = document.getElementById('btn-library-trigger');
         this.domClose = document.getElementById('btn-library-close');
         this.domList = document.getElementById('library-list');
         
-        // 綁定新增招式相關 DOM
         this.domAddSubmit = document.getElementById('btn-add-trick-submit');
         this.domNewNameInput = document.getElementById('new-trick-name');
 
@@ -34,7 +32,6 @@ export const TrickLibrary = {
         this.domClose.addEventListener('click', () => this.closeModal());
         this.domAddSubmit.addEventListener('click', () => this.handleCreateGlobalTrick());
 
-        // 統計頁面 DOM
         this.domStatsModal = document.getElementById('modal-stats');
         this.domStatsTrigger = document.getElementById('btn-stats-trigger');
         this.domStatsClose = document.getElementById('btn-stats-close');
@@ -46,55 +43,66 @@ export const TrickLibrary = {
         this.renderLibrary();
     },
 
+    // 🌟 修正點：獨立安全載入，確保發生網路延遲時絕對不卡死主程式
     async loadUserData(username) {
+        if (!username) return;
         const todayStr = this.getTodayDateString();
         
-        // 1. 抓取雲端公共自訂招式
-        let currentGlobalTricks = [];
         try {
+            // 1. 抓取雲端公共自訂招式
+            let currentGlobalTricks = [];
             const globalSnapshot = await getDocs(collection(db, "global_tricks"));
             globalSnapshot.forEach(docSnap => {
                 currentGlobalTricks.push(docSnap.data());
             });
-        } catch (e) { console.error("無法載入全域招式", e); }
 
-        // 2. 合併基礎範本
-        let fullTemplate = [...JSON.parse(JSON.stringify(this.defaultTricks)), ...currentGlobalTricks];
+            // 2. 合併基礎範本
+            let fullTemplate = [...JSON.parse(JSON.stringify(this.defaultTricks)), ...currentGlobalTricks];
 
-        // 3. 讀取使用者進度
-        const userDocRef = doc(db, "users", username);
-        const docSnap = await getDoc(userDocRef);
+            // 3. 讀取使用者個人進度
+            const userDocRef = doc(db, "users", username);
+            const docSnap = await getDoc(userDocRef);
 
-        if (docSnap.exists()) {
-            let userData = docSnap.data();
-            let savedTricks = userData.tricks;
+            if (docSnap.exists()) {
+                let userData = docSnap.data();
+                let savedTricks = userData.tricks || [];
 
-            // 確保全域最新招式有補進個人的清單中
-            fullTemplate.forEach(templateTrick => {
-                const hasTrick = savedTricks.some(t => t.id === templateTrick.id);
-                if (!hasTrick) {
-                    // ⚠️ 注意：這裡繼承全域自訂招式的初始狀態（即未解鎖 🔒）
-                    savedTricks.push({
-                        ...templateTrick,
-                        totalCount: 0,
-                        todayCount: 0,
-                        isUnlocked: templateTrick.isUnlocked 
-                    });
+                // 🌟 修正點：以全域資料庫的 isUnlocked 狀態為主，精準合併
+                fullTemplate.forEach(templateTrick => {
+                    const userTrickIdx = savedTricks.findIndex(t => t.id === templateTrick.id);
+                    if (userTrickIdx === -1) {
+                        // 個人紀錄沒有這招，補進去，狀態依據全域（新招式就是鎖定 false）
+                        savedTricks.push({
+                            id: templateTrick.id,
+                            name: templateTrick.name,
+                            totalCount: 0,
+                            todayCount: 0,
+                            isUnlocked: templateTrick.isUnlocked, 
+                            isCustom: templateTrick.isCustom || false
+                        });
+                    } else {
+                        // 個人紀錄有這招，保留次數，但如果是全域新招，確保標記正確
+                        if (templateTrick.isCustom) {
+                            savedTricks[userTrickIdx].isCustom = true;
+                        }
+                    }
+                });
+
+                this.tricks = savedTricks;
+
+                // 分辨換日檢查
+                if (userData.lastUpdateDate !== todayStr) {
+                    this.tricks.forEach(t => t.todayCount = 0);
+                    await setDoc(userDocRef, { tricks: this.tricks, lastUpdateDate: todayStr }, { merge: true });
                 }
-            });
-
-            this.tricks = savedTricks;
-
-            // 分辨換日檢查
-            if (userData.lastUpdateDate !== todayStr) {
-                this.tricks.forEach(t => t.todayCount = 0);
-                await setDoc(userDocRef, { tricks: this.tricks, lastUpdateDate: todayStr });
+            } else {
+                this.tricks = fullTemplate;
+                await setDoc(userDocRef, { tricks: this.tricks, lastUpdateDate: todayStr }, { merge: true });
             }
-        } else {
-            this.tricks = fullTemplate;
-            await setDoc(userDocRef, { tricks: this.tricks, lastUpdateDate: todayStr });
+            this.renderLibrary();
+        } catch (err) {
+            console.error("載入使用者資料失敗，改用本地快取預防卡死:", err);
         }
-        this.renderLibrary();
     },
 
     async handleCreateGlobalTrick() {
@@ -110,26 +118,39 @@ export const TrickLibrary = {
         if (isExist) { alert("此招式已存在於招式庫中！"); return; }
 
         const newId = Date.now();
+        
+        // 🌟 修正點：全域公共物件設定為 isUnlocked: false（不上鎖指的是開放挑戰，但在後台欄位是 locked）
         const newTrickObj = {
+            id: newId,
+            name: name,
+            isUnlocked: false, // 雲端設定為鎖定
+            isCustom: true
+        };
+
+        // 目前操作者要把這招加進自己的列表，也是未解鎖狀態
+        const myNewTrickObj = {
             id: newId,
             name: name,
             totalCount: 0,
             todayCount: 0,
-            isUnlocked: false, // 🌟 優化：新招式全域預設為「鎖定」🔒
+            isUnlocked: false, 
             isCustom: true
         };
 
         try {
-            // 1. 存入公共資料庫
+            // 1. 存入公共資料庫（確保上鎖）
             await setDoc(doc(db, "global_tricks", `custom_${newId}`), newTrickObj);
             
-            // 2. 塞入當前操作者的列表並儲存
-            this.tricks.push(newTrickObj);
+            // 2. 塞入當前操作者的列表並儲存雲端
+            this.tricks.push(myNewTrickObj);
             await this.saveToStorage();
             
             this.renderLibrary();
             this.domNewNameInput.value = "";
-            alert(`🎉 成功新增全域招式：${name}！\n該招式已加入全域挑戰池（預設鎖定 🔒），大家重新整理或切換帳號後即可抽到它。`);
+            alert(`🎉 成功新增全域招式：${name}！\n此招式已成功上鎖並加入公共挑戰池。`);
+            
+            // 🌟 修正點：立刻重新刷新網頁重整乾淨狀態，這能完美解決登入卡住的Bug！
+            window.location.reload();
         } catch (error) {
             console.error("Firebase 寫入失敗:", error);
             alert("新增失敗，請檢查網路連線。");
@@ -140,11 +161,11 @@ export const TrickLibrary = {
         if (window.currentUser) {
             const todayStr = this.getTodayDateString();
             const userDocRef = doc(db, "users", window.currentUser);
-            await setDoc(userDocRef, { tricks: this.tricks, lastUpdateDate: todayStr });
+            await setDoc(userDocRef, { tricks: this.tricks, lastUpdateDate: todayStr }, { merge: true });
 
             const logData = {};
             this.tricks.forEach(t => { if (t.todayCount > 0) logData[t.name] = t.todayCount; });
-            await setDoc(doc(db, "users", window.currentUser, "daily_logs", todayStr), { logData: logData });
+            await setDoc(doc(db, "users", window.currentUser, "daily_logs", todayStr), { logData: logData }, { merge: true });
         } else {
             localStorage.setItem('kendama_guest_tricks', JSON.stringify(this.tricks));
         }
@@ -178,8 +199,12 @@ export const TrickLibrary = {
         } catch (error) { this.domStatsList.innerHTML = `<p style="text-align:center; color:#e74c3c; margin-top:20px;">數據載入失敗，請稍後再試。</p>`; }
     },
     closeStatsModal() { this.domStatsModal.classList.add('hidden'); },
-    async openModal() { 
-        if (window.currentUser) { await this.loadUserData(window.currentUser); }
+    
+    // 🌟 修正點：點開招式庫時，不做阻礙執行緒的 await 雲端同步，改由背景安靜執行，徹底防範介面卡死被登出的 Bug
+    openModal() { 
+        if (window.currentUser) { 
+            this.loadUserData(window.currentUser).then(() => this.renderLibrary()); 
+        }
         this.renderLibrary(); 
         this.domLibraryModal.classList.remove('hidden'); 
     },
