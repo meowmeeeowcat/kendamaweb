@@ -55,8 +55,9 @@
     </main>
 
     <nav class="bottom-nav">
-        <button id="btn-login-trigger" class="nav-btn left-btn">🔐 登入 / 註冊</button>
-        <button id="btn-library-trigger" class="nav-btn right-btn">📖 招式庫</button>
+        <button id="btn-login-trigger" class="nav-btn" style="flex: 0 0 30%;">🔐 登入</button>
+        <button id="btn-stats-trigger" class="nav-btn" style="flex: 0 0 30%; background-color: #3498db;">📊 統計</button>
+        <button id="btn-library-trigger" class="nav-btn" style="flex: 0 0 30%; background-color: #2ecc71;">📖 招式庫</button>
     </nav>
 
     <div id="modal-login" class="modal hidden">
@@ -68,6 +69,16 @@
                 <button id="btn-login-submit">進入系統</button>
                 <button id="btn-login-close" class="btn-secondary">關閉</button>
             </div>
+        </div>
+    </div>
+    <div id="modal-stats" class="modal hidden">
+        <div class="modal-content library-content">
+            <h3>📊 每日練習統計</h3>
+            <p style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 10px;">這裡顯示您過去每天的精進成果：</p>
+            <div id="stats-list" class="library-list">
+                <p style="text-align:center; color:#999; margin-top:20px;">載入統計中...</p>
+            </div>
+            <button id="btn-stats-close" class="btn-secondary">返回首頁</button>
         </div>
     </div>
 
