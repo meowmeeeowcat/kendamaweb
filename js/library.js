@@ -1,10 +1,20 @@
 // library.js
 import { db } from "./firebase-config.js";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { tricksData } from "./tricks-data.js"; // 確保你有匯入 254 個招式的完整資料
+import { tricksData } from "./tricks-data.js"; // 🌟 確保你有正確引入 254 個招式的完整資料檔案
 
 export const TrickLibrary = {
-    defaultTricks: tricksData || [], 
+    // 如果匯入失敗，就用舊的 8 個保底，確保程式絕對不崩潰
+    defaultTricks: (typeof tricksData !== 'undefined' && tricksData) ? tricksData : [
+        { id: 1, name: "大皿 (Big Cup)", totalCount: 0, todayCount: 0, isUnlocked: true, category: "皿技", subcategory: "基礎技" },
+        { id: 2, name: "小皿 (Small Cup)", totalCount: 0, todayCount: 0, isUnlocked: true, category: "皿技", subcategory: "基礎技" },
+        { id: 3, name: "中皿 (Base Cup)", totalCount: 0, todayCount: 0, isUnlocked: true, category: "皿技", subcategory: "基礎技" },
+        { id: 4, name: "蠟燭 (Candle)", totalCount: 0, todayCount: 0, isUnlocked: false, category: "皿技", subcategory: "基礎技" },
+        { id: 5, name: "飛行大皿 (Airplane)", totalCount: 0, todayCount: 0, isUnlocked: false, category: "皿技", subcategory: "基礎技" },
+        { id: 6, name: "日本一周 (Around Japan)", totalCount: 0, todayCount: 0, isUnlocked: false, category: "手眼技", subcategory: "一周技" },
+        { id: 7, name: "世界一周 (Around the World)", totalCount: 0, todayCount: 0, isUnlocked: false, category: "手眼技", subcategory: "一周技" },
+        { id: 8, name: "燈塔 (Lighthouse)", totalCount: 0, todayCount: 0, isUnlocked: false, category: "平衡技", subcategory: "燈塔池" }
+    ],
     tricks: [],
 
     getTodayDateString() {
@@ -21,15 +31,16 @@ export const TrickLibrary = {
         if (this.domTrigger) this.domTrigger.addEventListener('click', () => this.openModal());
         if (this.domClose) this.domClose.addEventListener('click', () => this.closeModal());
 
-        // 🌟 核心防護 1：一啟動網頁，未登入前就立刻灌入本地 254 個完整招式，確保按鈕絕對不會卡死
+        // 🌟 核心修正：網頁一打開，在還沒載入雲端或未登入前，立刻灌入本地 254 個完整招式！
         this.resetLocalTricks();
     },
 
     resetLocalTricks() {
+        // 深拷貝預設招式，避免污染原始資料
         this.tricks = JSON.parse(JSON.stringify(this.defaultTricks));
     },
 
-    // 🌟 核心防護 2：對齊 Firebase 與本地 254 個招式庫
+    // 🌟 核心修正：安全的雲端與本地同步邏輯
     async loadUserProgress(username) {
         if (!username) { this.resetLocalTricks(); return; }
         try {
@@ -40,33 +51,32 @@ export const TrickLibrary = {
                 const cloudData = docSnap.data();
                 const savedDate = cloudData.lastSavedDate || "";
                 const isNewDay = (savedDate !== this.getTodayDateString());
-                
-                // 取得雲端的招式對照表 (Map 或 Array 結構防護)
-                const cloudTricksMap = cloudData.tricks || {};
+                const cloudTricks = cloudData.tricks;
 
-                // 🌟 以本地 254 個招式為骨架，只比對並更新次數與解鎖狀態
+                // 🌟 以本地 254 個招式為骨架，只拿雲端的次數跟解鎖狀態來填入
                 this.tricks = this.defaultTricks.map(dt => {
-                    // 兼容舊格式（可能是陣列或物件）
                     let ct = null;
-                    if (Array.isArray(cloudTricksMap)) {
-                        ct = cloudTricksMap.find(t => t && t.id === dt.id);
-                    } else {
-                        ct = cloudTricksMap[dt.id];
+                    if (cloudTricks) {
+                        if (Array.isArray(cloudTricks)) {
+                            ct = cloudTricks.find(t => t && t.id === dt.id);
+                        } else {
+                            ct = cloudTricks[dt.id]; // 支援 Map 格式
+                        }
                     }
 
                     if (ct) {
                         return {
                             ...dt,
-                            totalCount: ct.totalCount || 0,
-                            todayCount: isNewDay ? 0 : (ct.todayCount || 0),
+                            totalCount: typeof ct.totalCount === 'number' ? ct.totalCount : 0,
+                            todayCount: isNewDay ? 0 : (typeof ct.todayCount === 'number' ? ct.todayCount : 0),
                             isUnlocked: ct.isUnlocked !== undefined ? ct.isUnlocked : dt.isUnlocked
                         };
                     }
-                    // 如果雲端沒有這個招式（代表是後來新增的招式），就直接用本地預設
+                    // 雲端如果沒有這個招式（代表是新增的招式），就直接用本地預設
                     return { ...dt };
                 });
 
-                // 載入自訂招式
+                // 載入玩家個人自訂的外加招式
                 if (cloudData.customTricks && Array.isArray(cloudData.customTricks)) {
                     cloudData.customTricks.forEach(ct => {
                         this.tricks.push({
@@ -79,7 +89,7 @@ export const TrickLibrary = {
                 this.resetLocalTricks();
             }
         } catch (e) {
-            console.error("Firebase 載入失敗，直接啟用本地招式庫:", e);
+            console.error("Firebase 進度下載失敗，啟動本地招式庫防護:", e);
             this.resetLocalTricks();
         }
     },
@@ -130,10 +140,10 @@ export const TrickLibrary = {
         this.domList.innerHTML = this.tricks.map(trick => `
             <div class="lib-item" style="${trick.isCustom ? 'border-left: 4px solid #e67e22; background-color: #fffaf5;' : ''}">
                 <div>
-                    <span style="font-size:0.75rem; background:#7f8c8d; color:white; padding:1px 4px; border-radius:3px; margin-right:4px;">
+                    <span style="font-size:0.72rem; background:#7f8c8d; color:white; padding:1px 4px; border-radius:3px; margin-right:4px;">
                         ${trick.category || '未分類'} ➔ ${trick.subcategory || '未分類'}
                     </span>
-                    <strong style="display:block; margin-top:3px;">
+                    <strong style="display:block; margin-top:3px; color:#2c3e50;">
                         ${trick.name} ${trick.isUnlocked ? '' : '🔒'} 
                     </strong>
                 </div>

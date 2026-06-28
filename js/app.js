@@ -9,9 +9,9 @@ export const AppController = {
     historyChallengeIds: [],
 
     init() {
-        // 🌟 先初始化本地資料
+        // 先建立本地的基礎招式庫
         TrickLibrary.init();
-        // 再初始化登入狀態（會決定是否覆蓋成雲端進度）
+        // 啟動登入機制（沒登入也會驅動 AppController 渲染）
         AuthSystem.init(); 
         
         this.bindCounterEvents();
@@ -69,7 +69,7 @@ export const AppController = {
         const todayEl = card.querySelector('.today-count');
 
         if (!this.currentStableTrick) {
-            if (nameEl) nameEl.innerText = "暫無熟練招式 (請先從下方解鎖)";
+            if (nameEl) nameEl.innerText = "暫無熟練招式 (請先挑戰並解鎖招式)";
             if (targetEl) targetEl.innerText = "-";
             if (todayEl) todayEl.innerText = "-";
             return;
@@ -151,12 +151,12 @@ export const AppController = {
         document.querySelectorAll('#stable-trick-card .btn-count').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 if (!this.currentStableTrick) return;
-                const amount = parseInt(e.target.getAttribute('data-add'), 10);
+                const amount = parseInt(e.currentTarget.getAttribute('data-add'), 10);
                 
                 TrickLibrary.updateCount(this.currentStableTrick.id, amount);
                 this.renderStableCard();
                 
-                // 🌟 只在有登入時同步到雲端
+                // 🌟 只在有登入時，才執行雲端進度存檔
                 if (AuthSystem.currentUser) {
                     await TrickLibrary.saveUserProgress(AuthSystem.currentUser);
                 }
@@ -176,8 +176,11 @@ export const AppController = {
             btnChallengeSuccess.addEventListener('click', async () => {
                 if (!this.currentChallengeTrick) return;
                 
-                TrickLibrary.unlockTrick(this.currentChallengeTrick.id);
-                alert(`🏆 恭喜成功解鎖【${this.currentChallengeTrick.name}】！`);
+                const targetId = this.currentChallengeTrick.id;
+                const targetName = this.currentChallengeTrick.name;
+                
+                TrickLibrary.unlockTrick(targetId);
+                alert(`🏆 恭喜成功解鎖【${targetName}】！`);
                 
                 if (AuthSystem.currentUser) {
                     await TrickLibrary.saveUserProgress(AuthSystem.currentUser);

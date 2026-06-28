@@ -19,8 +19,8 @@ export const AuthSystem = {
         if (lastUser) { 
             this.loginAs(lastUser); 
         } else {
-            // 🌟 即使沒登入，也叫 AppController 驅動網頁，載入 254 個招式讓使用者操作
-            if (this.domStatus) this.domStatus.innerText = "🟢 未登入 (進度將不儲存)";
+            // 🌟 核心修正：沒登入時，直接使用本地 254 個招式驅動網頁，功能完全正常開放！
+            if (this.domStatus) this.domStatus.innerText = "🟢 未登入 (功能皆可使用，進度將不儲存)";
             AppController.onUserSwitched();
         }
     },
@@ -42,14 +42,14 @@ export const AuthSystem = {
         if (this.domTrigger) this.domTrigger.innerText = `👤 切換帳號`;
 
         try {
-            // 先載入並與雲端合併
+            // 1. 下載雲端次數並安全合流到 254 個招式內
             await TrickLibrary.loadUserProgress(username);
-            // 🌟 載入成功後，立刻重整並儲存一次，確保把最新 254 個結構洗回 Firebase 更新
+            // 2. 🌟 下載完成後立刻將 254 個最新結構覆蓋回雲端，幫舊帳號的 Firestore 升級！
             await TrickLibrary.saveUserProgress(username);
             
             AppController.onUserSwitched();
         } catch (error) {
-            console.error("雲端數據加載失敗:", error);
+            console.error("帳號切換加載失敗:", error);
             AppController.onUserSwitched();
         }
     }
