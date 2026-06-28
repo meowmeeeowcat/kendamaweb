@@ -2,7 +2,6 @@ import { db } from "./firebase-config.js";
 import { doc, getDoc, setDoc, collection, getDocs } from "firebase/firestore";
 
 export const TrickLibrary = {
-    // ... defaultTricks 保持不變 ...
     defaultTricks: [
         { id: 1, name: "大皿 (Big Cup)", totalCount: 0, todayCount: 0, isUnlocked: true },
         { id: 2, name: "小皿 (Small Cup)", totalCount: 0, todayCount: 0, isUnlocked: true },
@@ -15,7 +14,6 @@ export const TrickLibrary = {
     ],
     tricks: [],
 
-    // 獲取今天日期的字串 (格式如: 2026-06-28)
     getTodayDateString() {
         const today = new Date();
         const yyyy = today.getFullYear();
@@ -25,7 +23,6 @@ export const TrickLibrary = {
     },
 
     init() {
-        // 綁定招式庫 DOM
         this.domLibraryModal = document.getElementById('modal-library');
         this.domTrigger = document.getElementById('btn-library-trigger');
         this.domClose = document.getElementById('btn-library-close');
@@ -33,7 +30,6 @@ export const TrickLibrary = {
         this.domTrigger.addEventListener('click', () => this.openModal());
         this.domClose.addEventListener('click', () => this.closeModal());
 
-        // 🌟 新增：綁定統計頁面 DOM
         this.domStatsModal = document.getElementById('modal-stats');
         this.domStatsTrigger = document.getElementById('btn-stats-trigger');
         this.domStatsClose = document.getElementById('btn-stats-close');
@@ -41,6 +37,7 @@ export const TrickLibrary = {
         this.domStatsTrigger.addEventListener('click', () => this.openStatsModal());
         this.domStatsClose.addEventListener('click', () => this.closeStatsModal());
         
+        // 🌟 修正點：初始化時先將預設招式複製給 tricks，確保訪客未登入前也能正常顯示
         this.tricks = JSON.parse(JSON.stringify(this.defaultTricks));
         this.renderLibrary();
     },
@@ -54,16 +51,12 @@ export const TrickLibrary = {
             let data = docSnap.data();
             this.tricks = data.tricks;
             
-            // 🌟 核心：自動分辨換日檢查
-            // 如果雲端紀錄的上次更新日期跟今天不同，代表換日了！
+            // 自動分辨換日檢查
             if (data.lastUpdateDate !== todayStr) {
-                // 將所有招式的今日次數歸零
                 this.tricks.forEach(t => t.todayCount = 0);
-                // 更新雲端的上次更新日期為今天
                 await setDoc(userDocRef, { tricks: this.tricks, lastUpdateDate: todayStr });
             }
         } else {
-            // 新註冊用戶
             this.tricks = JSON.parse(JSON.stringify(this.defaultTricks));
             await setDoc(userDocRef, { tricks: this.tricks, lastUpdateDate: todayStr });
         }
@@ -71,14 +64,13 @@ export const TrickLibrary = {
     },
 
     async saveToStorage() {
+        // 🌟 修正點：如果尚未登入帳號，則暫時存到 LocalStorage（訪客模式），有登入才同步雲端
         if (window.currentUser) {
             const todayStr = this.getTodayDateString();
             const userDocRef = doc(db, "users", window.currentUser);
             
-            // 1. 同步更新總表與日期標記
             await setDoc(userDocRef, { tricks: this.tricks, lastUpdateDate: todayStr });
 
-            // 2. 🌟 同步更新「統計日誌」：把今天所有大於 0 次的招式存進當天文件
             const logData = {};
             this.tricks.forEach(t => {
                 if (t.todayCount > 0) {
@@ -88,10 +80,12 @@ export const TrickLibrary = {
             
             const logDocRef = doc(db, "users", window.currentUser, "daily_logs", todayStr);
             await setDoc(logDocRef, { logData: logData });
+        } else {
+            // 訪客本地快取
+            localStorage.setItem('kendama_guest_tricks', JSON.stringify(this.tricks));
         }
     },
 
-    // 🌟 新增：開啟並加載統計數據
     async openStatsModal() {
         this.domStatsModal.classList.remove('hidden');
         if (!window.currentUser) {
@@ -102,7 +96,6 @@ export const TrickLibrary = {
         this.domStatsList.innerHTML = `<p style="text-align:center; color:#999; margin-top:20px;">正在讀取雲端歷程...</p>`;
         
         try {
-            // 撈取 daily_logs 子集合下的所有日期文件
             const logsCollectionRef = collection(db, "users", window.currentUser, "daily_logs");
             const querySnapshot = await getDocs(logsCollectionRef);
             
@@ -112,9 +105,8 @@ export const TrickLibrary = {
             }
 
             let htmlContent = "";
-            // 遍歷每一天的紀錄
             querySnapshot.forEach((docSnap) => {
-                const date = docSnap.id; // 文件 ID 就是日期 (2026-06-28)
+                const date = docSnap.id;
                 const logData = docSnap.data().logData;
                 
                 let trickDetails = [];
@@ -128,7 +120,7 @@ export const TrickLibrary = {
                             <div style="font-weight:bold; color:#2c3e50; margin-bottom:4px;">📅 ${date}</div>
                             <div style="font-size:0.9rem; color:#555; padding-left:10px;">${trickDetails.join(' | ')}</div>
                         </div>
-                    ` + htmlContent; // 新日期顯示在最上面
+                    ` + htmlContent;
                 }
             });
 
@@ -150,6 +142,14 @@ export const TrickLibrary = {
             </div>
         `).join('');
     },
+
+    getTargetCount(totalCount) {
+        if (totalCount <= 10) return 3;
+        if (totalCount <= 50) return 5;
+        if (totalCount <= 100) return 10;
+        return 20;
+    },
+
     updateCount(id, amount) {
         const trick = this.tricks.find(t => t.id === id);
         if (trick) {
