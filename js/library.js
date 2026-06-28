@@ -1,10 +1,10 @@
 // library.js
 import { db } from "./firebase-config.js";
-import { doc, getDoc, setDoc, collection, getDocs } from "firebase/firestore";
-import { tricksData } from "./tricks-data.js"; // 🌟 匯入獨立的 254 個招式庫
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { tricksData } from "./tricks-data.js";
 
 export const TrickLibrary = {
-    defaultTricks: tricksData, // 🌟 直接套用外部完整的招式庫
+    defaultTricks: tricksData, 
     tricks: [],
 
     getTodayDateString() {
@@ -25,6 +25,7 @@ export const TrickLibrary = {
             this.domClose.addEventListener('click', () => this.closeModal());
         }
 
+        // 🌟 核心修正：初始化時就先讓本地招式庫填滿 254 個招式，確保未登入也能直接讀取
         this.resetLocalTricks();
     },
 
@@ -44,7 +45,6 @@ export const TrickLibrary = {
                 const isNewDay = (savedDate !== this.getTodayDateString());
                 const cloudTricksMap = cloudData.tricks || {};
 
-                // 🌟 核心對齊：用 254 個標準招式為基底，合併雲端進度
                 this.tricks = this.defaultTricks.map(dt => {
                     const ct = cloudTricksMap[dt.id];
                     if (ct) {
@@ -58,7 +58,6 @@ export const TrickLibrary = {
                     return dt;
                 });
 
-                // 合併自訂招式
                 if (cloudData.customTricks && Array.isArray(cloudData.customTricks)) {
                     cloudData.customTricks.forEach(ct => {
                         this.tricks.push({
@@ -77,7 +76,7 @@ export const TrickLibrary = {
     },
 
     async saveUserProgress(username) {
-        if (!username) return;
+        if (!username) return; // 未登入時不儲存到雲端
         try {
             const docRef = doc(db, "users", username);
             const tricksMap = {};
@@ -115,20 +114,20 @@ export const TrickLibrary = {
     
     closeModal() { this.domLibraryModal.classList.add('hidden'); },
 
-    // 🌟 修正後的優化渲染：顯示完整大分類、小分類與解鎖鎖定圖示
     renderLibrary() {
+        if (!this.domList) return;
         this.domList.innerHTML = this.tricks.map(trick => `
-            <div class=\"lib-item\" style=\"${trick.isCustom ? 'border-left: 4px solid #e67e22; background-color: #fffaf5;' : ''}\">
+            <div class="lib-item" style="${trick.isCustom ? 'border-left: 4px solid #e67e22; background-color: #fffaf5;' : ''}">
                 <div>
-                    <span style=\"font-size:0.75rem; background:#7f8c8d; color:white; padding:1px 4px; border-radius:3px; margin-right:4px;\">
+                    <span style="font-size:0.75rem; background:#7f8c8d; color:white; padding:1px 4px; border-radius:3px; margin-right:4px;">
                         ${trick.category || '未分類'} ➔ ${trick.subcategory || '未分類'}
                     </span>
-                    <strong style=\"display:block; margin-top:3px;\">
+                    <strong style="display:block; margin-top:3px;">
                         ${trick.name} ${trick.isUnlocked ? '' : '🔒'} 
-                        ${trick.isCustom ? '<small style=\"background:#e67e22; color:white; padding:1px 3px; border-radius:3px; font-size:0.65rem;\">自訂</small>' : ''}
+                        ${trick.isCustom ? '<small style="background:#e67e22; color:white; padding:1px 3px; border-radius:3px; font-size:0.65rem;">自訂</small>' : ''}
                     </strong>
                 </div>
-                <span class=\"lib-count-info\">總計: ${trick.totalCount} 次</span>
+                <span class="lib-count-info">總計: ${trick.totalCount} 次</span>
             </div>
         `).join('');
     },

@@ -11,21 +11,23 @@ export const AuthSystem = {
         this.domSubmit = document.getElementById('btn-login-submit');
         this.domStatus = document.getElementById('user-status');
 
-        this.domTrigger.addEventListener('click', () => this.openModal());
-        this.domClose.addEventListener('click', () => this.closeModal());
-        this.domSubmit.addEventListener('click', () => this.handleLogin());
+        if (this.domTrigger) this.domTrigger.addEventListener('click', () => this.openModal());
+        if (this.domClose) this.domClose.addEventListener('click', () => this.closeModal());
+        if (this.domSubmit) this.domSubmit.addEventListener('click', () => this.handleLogin());
         
         const lastUser = localStorage.getItem('kendama_last_user');
         if (lastUser) { 
             this.loginAs(lastUser); 
         } else {
+            // 🌟 核心修正：沒登入狀態下，也必須命令 AppController 刷新介面與選單，讓功能可用
             AppController.onUserSwitched();
         }
     },
-    openModal() { this.domLoginModal.classList.remove('hidden'); },
-    closeModal() { this.domLoginModal.classList.add('hidden'); },
+    openModal() { if (this.domLoginModal) this.domLoginModal.classList.remove('hidden'); },
+    closeModal() { if (this.domLoginModal) this.domLoginModal.classList.add('hidden'); },
     handleLogin() {
-        const username = document.getElementById('login-username').value.trim();
+        const usernameEl = document.getElementById('login-username');
+        const username = usernameEl ? usernameEl.value.trim() : "";
         if (!username) { alert('請輸入暱稱！'); return; }
         this.loginAs(username);
         this.closeModal();
@@ -35,12 +37,11 @@ export const AuthSystem = {
         window.currentUser = username; 
         localStorage.setItem('kendama_last_user', username);
         
-        this.domStatus.innerText = `👤 選手: ${username} (雲端同步中)`;
-        this.domTrigger.innerText = `👤 切換帳號`;
+        if (this.domStatus) this.domStatus.innerText = `👤 選手: ${username} (雲端同步中)`;
+        if (this.domTrigger) this.domTrigger.innerText = `👤 切換帳號`;
 
         try {
             await TrickLibrary.loadUserProgress(username);
-            // 登入成功加載雲端數據後，完整重新配置首頁選擇器與畫面
             AppController.onUserSwitched();
         } catch (error) {
             console.error("加載進度錯誤:", error);
