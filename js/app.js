@@ -1,4 +1,3 @@
-// app.js
 import { AuthSystem } from "./auth.js";
 import { TrickLibrary } from "./library.js";
 
