@@ -10,7 +10,7 @@
 
     <header class="app-header">
         <h1>劍玉練習庫</h1>
-        <div id="user-status" class="user-status">未登入 (進度將不儲存)</div>
+        <div id="user-status" class="user-status">載入中...</div>
     </header>
 
     <main class="app-content">
@@ -27,83 +27,60 @@
                     <button class="btn-count" data-add="-1">-1</button>
                 </div>
                 
-                <!-- 手選與隨機控制區塊（已修正隨機換招按鈕字體顏色為白色） -->
-                <div style="margin-top: 15px; display: flex; gap: 8px; justify-content: center; align-items: center;">
-                    <select id="select-stable-trick" style="flex: 1; padding: 6px; border-radius: 4px; border: 1px solid #ddd; font-size: 0.85rem;">
+                <div style="margin-top: 15px; display: flex; gap: 8px; flex-direction: column;">
+                    <select id="select-stable-trick" style="width: 100%; padding: 8px; border-radius: 4px;">
                         <option value="">-- 手選熟練招式 --</option>
                     </select>
-                    <button id="btn-stable-complete" class="btn-action" style="background-color: #34495e; color: white; padding: 6px 12px; font-size: 0.85rem; white-space: nowrap; border: none; border-radius: 4px; cursor: pointer;">🎲 隨機換招</button>
+                    <button id="btn-next-stable" style="background-color: #3498db; color: white; padding: 10px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
+                        🎲 隨機換熟練招式
+                    </button>
                 </div>
             </div>
         </section>
 
         <section class="card-section">
-        <div id="challenge-trick-card" class="card">
-            <h2>🏆 新招式挑戰 (未解鎖)</h2>
-            <div class="trick-name">載入中...</div>
-            <div class="counter-display">
-                <span>今日練習: <span class="today-count">-</span> 次</span>
+            <div id="challenge-trick-card" class="card challenge">
+                <h2>🎯 新招式挑戰</h2>
+                <div class="trick-name">載入中...</div>
+                
+                <div style="margin-top: 15px; display: flex; gap: 8px; flex-direction: column;">
+                    <select id="select-challenge-trick" style="width: 100%; padding: 8px; border-radius: 4px;">
+                        <option value="">-- 手選挑戰招式 --</option>
+                    </select>
+                    <div style="display: flex; gap: 8px;">
+                        <button id="btn-next-challenge" style="flex: 1; background-color: #e74c3c; color: white; padding: 10px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
+                            🎲 隨機換挑戰招式
+                        </button>
+                        <button id="btn-challenge-success" style="flex: 1; background-color: #2ecc71; color: white; padding: 10px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
+                            🏆 挑戰成功 (解鎖)
+                        </button>
+                    </div>
+                </div>
             </div>
-            <div class="button-group">
-                <button class="btn-count" data-add="1">+1</button>
-                <button class="btn-count" data-add="-1">-1</button>
-            </div>
-            
-            <!-- 手選與隨機控制區塊（已修正隨機換招按鈕字體顏色為白色） -->
-            <div style="margin-top: 15px; display: flex; gap: 8px; justify-content: center; align-items: center;">
-                <select id="select-challenge-trick" style="flex: 1; padding: 6px; border-radius: 4px; border: 1px solid #ddd; font-size: 0.85rem;">
-                    <option value="">-- 手選挑戰招式 --</option>
-                </select>
-                <button id="btn-challenge-skip" class="btn-action" style="background-color: #34495e; color: white; padding: 6px 12px; font-size: 0.85rem; white-space: nowrap; border: none; border-radius: 4px; cursor: pointer;">🎲 隨機換招</button>
-            </div>
-            
-            <!-- 🌟 修正點：縮短按鈕長度，使其居中且寬度適中 -->
-            <div style="text-align: center; margin-top: 15px;">
-                <button id="btn-challenge-complete" class="btn-action" style="display: inline-block; padding: 8px 20px; background-color: #2ecc71; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">✅ 挑戰成功 (解鎖並移入熟練池)</button>
-            </div>
-        </div>
         </section>
     </main>
 
     <nav class="bottom-nav">
-        <button id="btn-login-trigger" class="nav-btn" style="flex: 0 0 30%;">🔐 登入</button>
-        <button id="btn-stats-trigger" class="nav-btn" style="flex: 0 0 30%; background-color: #3498db;">📊 統計</button>
-        <button id="btn-library-trigger" class="nav-btn" style="flex: 0 0 30%; background-color: #2ecc71;">📖 招式庫</button>
+        <button id="btn-login-trigger" class="nav-item">👤 選手登入</button>
+        <button id="btn-library-trigger" class="nav-item">📖 完整招式庫</button>
     </nav>
 
     <div id="modal-login" class="modal hidden">
         <div class="modal-content">
-            <h3>使用者登入 / 快速註冊</h3>
-            <p style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 10px;">輸入暱稱即可登入。若暱稱不存在將自動建立新帳號。</p>
-            <input type="text" id="login-username" placeholder="請輸入您的暱稱">
+            <h3>👤 選手登入 / 切換帳號</h3>
+            <p style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 10px;">輸入您的獨特暱稱，系統將會為您在雲端保存專屬練習紀錄。</p>
+            <input type="text" id="login-username" placeholder="請輸入您的暱稱 (例如: 貓貓)">
             <div class="modal-actions">
-                <button id="btn-login-submit">進入系統</button>
-                <button id="btn-login-close" class="btn-secondary">關閉</button>
+                <button id="btn-login-submit" style="background-color: #2ecc71; color: white; font-weight: bold;">登入</button>
+                <button id="btn-login-close" class="btn-secondary">取消</button>
             </div>
-        </div>
-    </div>
-    <div id="modal-stats" class="modal hidden">
-        <div class="modal-content library-content">
-            <h3>📊 每日練習統計</h3>
-            <p style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 10px;">這裡顯示您過去每天的精進成果：</p>
-            <div id="stats-list" class="library-list">
-                <p style="text-align:center; color:#999; margin-top:20px;">載入統計中...</p>
-            </div>
-            <button id="btn-stats-close" class="btn-secondary">返回首頁</button>
         </div>
     </div>
 
     <div id="modal-library" class="modal hidden">
         <div class="modal-content library-content">
             <h3 style="margin-top: 0; margin-bottom: 15px;">📖 完整招式庫</h3>
-
-            <div id="add-trick-input-zone" style="background-color: #f8f9fa; padding: 12px; border-radius: 8px; margin-bottom: 15px; border: 1px dashed #e67e22; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
-                <input type="text" id="new-trick-name" placeholder="輸入全域新招式 (例如: 宇宙一周)" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem;">
-                <button id="btn-add-trick-submit" style="padding: 8px 16px; background-color: #e67e22; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; white-space: nowrap;">確認新增</button>
-            </div>
-
             <div id="library-list" class="library-list"></div>
-            
             <button id="btn-library-close" class="btn-secondary" style="margin-top: 15px;">返回首頁</button>
         </div>
     </div>
@@ -115,10 +92,13 @@
             "firebase/firestore": "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"
           }
         }
-      </script>
-  
-      <script type="module" src="js/auth.js"></script>
-      <script type="module" src="js/library.js"></script>
-      <script type="module" src="js/app.js"></script>
+    </script>
+    <script type="module">
+        import { AppController } from "./app.js";
+        // 確保 DOM 樹載入完成後再初始化，絕對防禦加載順序衝突
+        document.addEventListener('DOMContentLoaded', () => {
+            AppController.init();
+        });
+    </script>
 </body>
 </html>
