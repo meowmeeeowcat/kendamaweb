@@ -1,10 +1,10 @@
 // library.js
 import { db } from "./firebase-config.js";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { tricksData } from "./tricks-data.js";
+import { tricksData } from "./tricks-data.js"; // 確保你有匯入 254 個招式的完整資料
 
 export const TrickLibrary = {
-    defaultTricks: tricksData, 
+    defaultTricks: tricksData || [], 
     tricks: [],
 
     getTodayDateString() {
@@ -18,14 +18,10 @@ export const TrickLibrary = {
         this.domClose = document.getElementById('btn-library-close');
         this.domList = document.getElementById('library-list');
 
-        if (this.domTrigger) {
-            this.domTrigger.addEventListener('click', () => this.openModal());
-        }
-        if (this.domClose) {
-            this.domClose.addEventListener('click', () => this.closeModal());
-        }
+        if (this.domTrigger) this.domTrigger.addEventListener('click', () => this.openModal());
+        if (this.domClose) this.domClose.addEventListener('click', () => this.closeModal());
 
-        // 🌟 核心修正：初始化時就先讓本地招式庫填滿 254 個招式，確保未登入也能直接讀取
+        // 🌟 核心防護 1：一啟動網頁，未登入前就立刻灌入本地 254 個完整招式，確保按鈕絕對不會卡死
         this.resetLocalTricks();
     },
 
@@ -33,6 +29,7 @@ export const TrickLibrary = {
         this.tricks = JSON.parse(JSON.stringify(this.defaultTricks));
     },
 
+    // 🌟 核心防護 2：對齊 Firebase 與本地 254 個招式庫
     async loadUserProgress(username) {
         if (!username) { this.resetLocalTricks(); return; }
         try {
@@ -43,10 +40,20 @@ export const TrickLibrary = {
                 const cloudData = docSnap.data();
                 const savedDate = cloudData.lastSavedDate || "";
                 const isNewDay = (savedDate !== this.getTodayDateString());
+                
+                // 取得雲端的招式對照表 (Map 或 Array 結構防護)
                 const cloudTricksMap = cloudData.tricks || {};
 
+                // 🌟 以本地 254 個招式為骨架，只比對並更新次數與解鎖狀態
                 this.tricks = this.defaultTricks.map(dt => {
-                    const ct = cloudTricksMap[dt.id];
+                    // 兼容舊格式（可能是陣列或物件）
+                    let ct = null;
+                    if (Array.isArray(cloudTricksMap)) {
+                        ct = cloudTricksMap.find(t => t && t.id === dt.id);
+                    } else {
+                        ct = cloudTricksMap[dt.id];
+                    }
+
                     if (ct) {
                         return {
                             ...dt,
@@ -55,9 +62,11 @@ export const TrickLibrary = {
                             isUnlocked: ct.isUnlocked !== undefined ? ct.isUnlocked : dt.isUnlocked
                         };
                     }
-                    return dt;
+                    // 如果雲端沒有這個招式（代表是後來新增的招式），就直接用本地預設
+                    return { ...dt };
                 });
 
+                // 載入自訂招式
                 if (cloudData.customTricks && Array.isArray(cloudData.customTricks)) {
                     cloudData.customTricks.forEach(ct => {
                         this.tricks.push({
@@ -70,13 +79,13 @@ export const TrickLibrary = {
                 this.resetLocalTricks();
             }
         } catch (e) {
-            console.error("載入進度失敗，改用本地預設招式:", e);
+            console.error("Firebase 載入失敗，直接啟用本地招式庫:", e);
             this.resetLocalTricks();
         }
     },
 
     async saveUserProgress(username) {
-        if (!username) return; // 未登入時不儲存到雲端
+        if (!username) return; 
         try {
             const docRef = doc(db, "users", username);
             const tricksMap = {};
@@ -87,6 +96,8 @@ export const TrickLibrary = {
                     customTricksArray.push(t);
                 } else {
                     tricksMap[t.id] = {
+                        id: t.id,
+                        name: t.name,
                         totalCount: t.totalCount,
                         todayCount: t.todayCount,
                         isUnlocked: t.isUnlocked
@@ -100,7 +111,7 @@ export const TrickLibrary = {
                 lastSavedDate: this.getTodayDateString()
             }, { merge: true });
         } catch (e) {
-            console.error("同步進度至雲端失敗:", e);
+            console.error("同步至 Firebase 失敗:", e);
         }
     },
 
@@ -109,10 +120,10 @@ export const TrickLibrary = {
             window.AppController.refreshStableSelect();
         }
         this.renderLibrary(); 
-        this.domLibraryModal.classList.remove('hidden'); 
+        if (this.domLibraryModal) this.domLibraryModal.classList.remove('hidden'); 
     },
     
-    closeModal() { this.domLibraryModal.classList.add('hidden'); },
+    closeModal() { if (this.domLibraryModal) this.domLibraryModal.classList.add('hidden'); },
 
     renderLibrary() {
         if (!this.domList) return;
@@ -124,7 +135,6 @@ export const TrickLibrary = {
                     </span>
                     <strong style="display:block; margin-top:3px;">
                         ${trick.name} ${trick.isUnlocked ? '' : '🔒'} 
-                        ${trick.isCustom ? '<small style="background:#e67e22; color:white; padding:1px 3px; border-radius:3px; font-size:0.65rem;">自訂</small>' : ''}
                     </strong>
                 </div>
                 <span class="lib-count-info">總計: ${trick.totalCount} 次</span>

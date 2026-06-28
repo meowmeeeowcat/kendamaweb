@@ -9,7 +9,9 @@ export const AppController = {
     historyChallengeIds: [],
 
     init() {
+        // 🌟 先初始化本地資料
         TrickLibrary.init();
+        // 再初始化登入狀態（會決定是否覆蓋成雲端進度）
         AuthSystem.init(); 
         
         this.bindCounterEvents();
@@ -30,30 +32,30 @@ export const AppController = {
     
     refreshStableSelect() {
         const selectEl = document.getElementById('select-stable-trick');
-        if (!selectEl || !TrickLibrary.tricks || TrickLibrary.tricks.length === 0) return;
-        
+        if (!selectEl) return;
         selectEl.innerHTML = '<option value="">-- 手選熟練招式 --</option>';
+        if (!TrickLibrary.tricks || TrickLibrary.tricks.length === 0) return;
         
         const unlockedTricks = TrickLibrary.tricks.filter(t => t.isUnlocked);
         unlockedTricks.forEach(t => {
             const opt = document.createElement('option');
             opt.value = t.id;
-            opt.innerText = `[${t.category}] ${t.name}`;
+            opt.innerText = `[${t.category || '熟練'}] ${t.name}`;
             selectEl.appendChild(opt);
         });
     },
 
     refreshChallengeSelect() {
         const selectEl = document.getElementById('select-challenge-trick');
-        if (!selectEl || !TrickLibrary.tricks || TrickLibrary.tricks.length === 0) return;
-        
+        if (!selectEl) return;
         selectEl.innerHTML = '<option value="">-- 手選挑戰招式 --</option>';
+        if (!TrickLibrary.tricks || TrickLibrary.tricks.length === 0) return;
         
         const lockedTricks = TrickLibrary.tricks.filter(t => !t.isUnlocked);
         lockedTricks.forEach(t => {
             const opt = document.createElement('option');
             opt.value = t.id;
-            opt.innerText = `[${t.category}] ${t.name}`;
+            opt.innerText = `[${t.category || '挑戰'}] ${t.name}`;
             selectEl.appendChild(opt);
         });
     },
@@ -61,23 +63,22 @@ export const AppController = {
     renderStableCard() {
         const card = document.getElementById('stable-trick-card');
         if (!card) return;
-        if (!this.currentStableTrick) {
-            const nameEl = card.querySelector('.trick-name');
-            const targetEl = card.querySelector('.target-count');
-            const todayEl = card.querySelector('.today-count');
-            if (nameEl) nameEl.innerText = "暫無熟練招式";
-            if (targetEl) targetEl.innerText = "-";
-            if (todayEl) todayEl.innerText = "-";
-            return;
-        }
-        const t = this.currentStableTrick;
-        const target = TrickLibrary.getTargetCount(t.totalCount);
         
         const nameEl = card.querySelector('.trick-name');
         const targetEl = card.querySelector('.target-count');
         const todayEl = card.querySelector('.today-count');
+
+        if (!this.currentStableTrick) {
+            if (nameEl) nameEl.innerText = "暫無熟練招式 (請先從下方解鎖)";
+            if (targetEl) targetEl.innerText = "-";
+            if (todayEl) todayEl.innerText = "-";
+            return;
+        }
         
-        if (nameEl) nameEl.innerText = `${t.name} (${t.category}/${t.subcategory})`;
+        const t = this.currentStableTrick;
+        const target = TrickLibrary.getTargetCount(t.totalCount);
+        
+        if (nameEl) nameEl.innerText = `${t.name} (${t.category || ''}/${t.subcategory || ''})`;
         if (targetEl) targetEl.innerText = target;
         if (todayEl) todayEl.innerText = t.todayCount;
     },
@@ -89,11 +90,11 @@ export const AppController = {
         if (!nameEl) return;
 
         if (!this.currentChallengeTrick) {
-            nameEl.innerText = "恭喜全招式解鎖！";
+            nameEl.innerText = "恭喜全招式解鎖！🎉";
             return;
         }
         const t = this.currentChallengeTrick;
-        nameEl.innerText = `${t.name} (${t.category}/${t.subcategory})`;
+        nameEl.innerText = `${t.name} (${t.category || ''}/${t.subcategory || ''})`;
     },
 
     nextStableTrick() {
@@ -112,13 +113,13 @@ export const AppController = {
         }
 
         const randomTrick = available[Math.floor(Math.random() * available.length)];
-        this.historyStableIds.push(randomTrick.id);
-        this.currentStableTrick = randomTrick;
-        
-        this.renderStableCard();
-        
-        const selectEl = document.getElementById('select-stable-trick');
-        if (selectEl) selectEl.value = randomTrick.id;
+        if (randomTrick) {
+            this.historyStableIds.push(randomTrick.id);
+            this.currentStableTrick = randomTrick;
+            this.renderStableCard();
+            const selectEl = document.getElementById('select-stable-trick');
+            if (selectEl) selectEl.value = randomTrick.id;
+        }
     },
 
     nextChallengeTrick() {
@@ -137,13 +138,13 @@ export const AppController = {
         }
 
         const randomTrick = available[Math.floor(Math.random() * available.length)];
-        this.historyChallengeIds.push(randomTrick.id);
-        this.currentChallengeTrick = randomTrick;
-        
-        this.renderChallengeCard();
-
-        const selectEl = document.getElementById('select-challenge-trick');
-        if (selectEl) selectEl.value = randomTrick.id;
+        if (randomTrick) {
+            this.historyChallengeIds.push(randomTrick.id);
+            this.currentChallengeTrick = randomTrick;
+            this.renderChallengeCard();
+            const selectEl = document.getElementById('select-challenge-trick');
+            if (selectEl) selectEl.value = randomTrick.id;
+        }
     },
 
     bindCounterEvents() {
@@ -155,6 +156,7 @@ export const AppController = {
                 TrickLibrary.updateCount(this.currentStableTrick.id, amount);
                 this.renderStableCard();
                 
+                // 🌟 只在有登入時同步到雲端
                 if (AuthSystem.currentUser) {
                     await TrickLibrary.saveUserProgress(AuthSystem.currentUser);
                 }
@@ -175,7 +177,7 @@ export const AppController = {
                 if (!this.currentChallengeTrick) return;
                 
                 TrickLibrary.unlockTrick(this.currentChallengeTrick.id);
-                alert(`🏆 恭喜成功解鎖【${this.currentChallengeTrick.name}】！該招式已移入熟練池。`);
+                alert(`🏆 恭喜成功解鎖【${this.currentChallengeTrick.name}】！`);
                 
                 if (AuthSystem.currentUser) {
                     await TrickLibrary.saveUserProgress(AuthSystem.currentUser);
@@ -197,7 +199,6 @@ export const AppController = {
             selectStable.addEventListener('change', (e) => {
                 const selectedId = parseInt(e.target.value, 10);
                 if (!selectedId) return;
-                
                 const found = TrickLibrary.tricks.find(t => t.id === selectedId);
                 if (found) {
                     this.currentStableTrick = found;
@@ -210,7 +211,6 @@ export const AppController = {
             selectChallenge.addEventListener('change', (e) => {
                 const selectedId = parseInt(e.target.value, 10);
                 if (!selectedId) return;
-                
                 const found = TrickLibrary.tricks.find(t => t.id === selectedId);
                 if (found) {
                     this.currentChallengeTrick = found;
