@@ -1,6 +1,6 @@
 // library.js
 import { db } from "./firebase-config.js";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, collection, getDocs } from "firebase/firestore";
 import { tricksData } from "./tricks-data.js"; // 🌟 確保你有正確引入 254 個招式的完整資料檔案
 
 export const TrickLibrary = {
