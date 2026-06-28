@@ -16,40 +16,48 @@
     <main class="app-content">
         <section class="card-section">
             <h2>🎯 今日招式穩固</h2>
-            <div id="stable-trick-card" class="trick-card">
-                <div class="trick-info">
-                    <p class="trick-name">載入中...</p>
-                    <p class="trick-desc">目標：今日成功做出 <span class="target-count">0</span> 次</p>
-                    <button id="btn-stable-complete" class="btn-action-main">基準達成！換下一招</button>
+            <div id="stable-trick-card" class="card">
+                <h2>🔥 今日穩固 (熟練池)</h2>
+                <div class="trick-name">載入中...</div>
+                <div class="counter-display">
+                    <span>目標: <span class="target-count">-</span> 次</span>
+                    <span>今日: <span class="today-count">-</span> 次</span>
                 </div>
-                <div class="counter-area">
-                    <div class="count-display">今日: <span class="today-count">0</span> 次</div>
-                    <div class="count-actions">
-                        <button class="btn-count" data-add="-1">-1</button>
-                        <button class="btn-count" data-add="1">+1</button>
-                    </div>
+                <div class="button-group">
+                    <button class="btn-count" data-add="1">+1</button>
+                    <button class="btn-count" data-add="-1">-1</button>
+                </div>
+                
+                <div style="margin-top: 15px; display: flex; gap: 8px; justify-content: center; align-items: center;">
+                    <select id="select-stable-trick" style="flex: 1; padding: 6px; border-radius: 4px; border: 1px solid #ddd; font-size: 0.85rem;">
+                        <option value="">-- 手選熟練招式 --</option>
+                    </select>
+                    <button id="btn-stable-complete" class="btn-action" style="background-color: #34495e; padding: 6px 12px; font-size: 0.85rem; white-space: nowrap;">🎲 隨機換招</button>
                 </div>
             </div>
         </section>
 
         <section class="card-section">
             <h2>🔥 新招式挑戰</h2>
-            <div id="challenge-trick-card" class="trick-card challenge">
-                <div class="trick-info">
-                    <p class="trick-name">載入中...</p>
-                    <p class="trick-desc">嘗試全新技巧，點擊解鎖將移入熟練庫</p>
-                    <div class="challenge-actions">
-                        <button id="btn-challenge-complete" class="btn-action-main btn-success">解鎖成功</button>
-                        <button id="btn-challenge-skip" class="btn-action-main btn-warning">跳過</button>
-                    </div>
+            <div id="challenge-trick-card" class="card">
+                <h2>🏆 新招式挑戰 (未解鎖)</h2>
+                <div class="trick-name">載入中...</div>
+                <div class="counter-display">
+                    <span>今日練習: <span class="today-count">-</span> 次</span>
                 </div>
-                <div class="counter-area">
-                    <div class="count-display">今日: <span class="today-count">0</span> 次</div>
-                    <div class="count-actions">
-                        <button class="btn-count" data-add="-1">-1</button>
-                        <button class="btn-count" data-add="1">+1</button>
-                    </div>
+                <div class="button-group">
+                    <button class="btn-count" data-add="1">+1</button>
+                    <button class="btn-count" data-add="-1">-1</button>
                 </div>
+                
+                <div style="margin-top: 15px; display: flex; gap: 8px; justify-content: center; align-items: center;">
+                    <select id="select-challenge-trick" style="flex: 1; padding: 6px; border-radius: 4px; border: 1px solid #ddd; font-size: 0.85rem;">
+                        <option value="">-- 手選挑戰招式 --</option>
+                    </select>
+                    <button id="btn-challenge-skip" class="btn-action" style="background-color: #34495e; padding: 6px 12px; font-size: 0.85rem; white-space: nowrap;">🎲 隨機換招</button>
+                </div>
+                
+                <button id="btn-challenge-complete" class="btn-action" style="margin-top: 10px; width: 100%; background-color: #2ecc71;">✅ 挑戰成功 (解鎖並移入熟練池)</button>
             </div>
         </section>
     </main>
