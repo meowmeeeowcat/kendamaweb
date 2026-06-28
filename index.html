@@ -116,21 +116,18 @@
           }
         }
     </script>
-
     <script type="module">
+        // 🌟 關鍵修正：由原本的 "./app.js" 改為 "./js/app.js"
         import { AppController } from "./js/app.js";
-
-        // 🌟 防禦機制：等待 DOM 樹與所有本地 JS 載入完成後再啟動，防止任何 null 致命中斷
+        
+        // 保守防禦防死鎖機制
         window.addEventListener('load', () => {
             try {
-                if (window.AppController || AppController) {
+                if (typeof AppController !== 'undefined') {
                     AppController.init();
                 }
             } catch (error) {
-                console.error("【系統防禦提示】檢測到檔案載入異常，啟動保底控制常規運作：", error);
-                // 如果因為 404 導致初始化斷裂，強行讓頁面基本 DOM 按鈕不鎖死
-                const statusEl = document.getElementById('user-status');
-                if (statusEl) statusEl.innerText = "🟢 本地安全模式 (雲端連線異常)";
+                console.error("【系統提示】初始化異常：", error);
             }
         });
     </script>
