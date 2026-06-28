@@ -1,3 +1,4 @@
+// auth.js
 import { TrickLibrary } from "./library.js";
 import { AppController } from "./app.js";
 
@@ -38,11 +39,12 @@ export const AuthSystem = {
         this.domTrigger.innerText = `👤 切換帳號`;
 
         try {
-            // 🌟 即使雲端載入稍微慢了，主程式也會先初始化完畢，不會卡死
-            await TrickLibrary.loadUserData(username);
-        } catch(e) {
-            console.error(e);
+            await TrickLibrary.loadUserProgress(username);
+            // 登入成功加載雲端數據後，完整重新配置首頁選擇器與畫面
+            AppController.onUserSwitched();
+        } catch (error) {
+            console.error("加載進度錯誤:", error);
+            AppController.onUserSwitched();
         }
-        AppController.onUserSwitched();
     }
 };
