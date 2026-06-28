@@ -104,42 +104,53 @@ export const TrickLibrary = {
 
     // 🌟 新增：由某個使用者建立全域新招式，並儲存到 Firebase
     async handleCreateGlobalTrick() {
+        // 🌟 防禦點 1：先檢查有沒有登入，沒登入直接攔截
+        if (!window.currentUser && !AuthSystem?.currentUser) { 
+            alert("【請先登入】必須登入暱稱後，才能新增全域共享招式！"); 
+            return; 
+        }
+        
+        const username = window.currentUser || AuthSystem.currentUser;
         const name = this.domNewNameInput.value.trim();
+        
         if (!name) { alert("請輸入招式名稱！"); return; }
-        if (!window.currentUser) { alert("請先登入帳號再建立招式！"); return; }
 
         // 檢查名稱是否重複
         const isExist = this.tricks.some(t => t.name.toLowerCase() === name.toLowerCase());
         if (isExist) { alert("此招式已存在於招式庫中！"); return; }
 
-        // 使用當前時間戳記生成唯一的招式 ID
         const newId = Date.now();
         const newTrickObj = {
             id: newId,
             name: name,
             totalCount: 0,
             todayCount: 0,
-            isUnlocked: true, // 自訂招式預設為直接解鎖，大家都能直接練
+            isUnlocked: true, // 自訂招式預設為直接解鎖
             isCustom: true
         };
 
         try {
-            // 1. 存入全域公共資料庫，讓所有人都能同步下載
+            // 1. 存入全域公共資料庫
             await setDoc(doc(db, "global_tricks", `custom_${newId}`), newTrickObj);
             
-            // 2. 即時塞入當前操作者的列表中並渲染
+            // 2. 即時塞入當前操作者的個人列表中
             this.tricks.push(newTrickObj);
-            await this.saveToStorage();
             
+            // 3. 儲存個人進度
+            const todayStr = this.getTodayDateString();
+            const userDocRef = doc(db, "users", username);
+            await setDoc(userDocRef, { tricks: this.tricks, lastUpdateDate: todayStr });
+
             this.renderLibrary();
             this.domNewNameInput.value = "";
             this.domAddZone.classList.add('hidden');
-            alert(`成功新增全域招式：${name}！大家重新整理即可看到！`);
+            alert(`🎉 成功新增全域招式：${name}！\n所有人重新整理即可看到。`);
             
-            // 刷新首頁卡片
-            if (window.location.reload) window.location.reload(); 
+            // 4. 自動刷新頁面，讓首頁的抽選池能即時抓到這隻新招
+            window.location.reload(); 
         } catch (error) {
-            alert("新增失敗，請檢查網路或 Firebase 安全規則。");
+            console.error("Firebase 寫入失敗:", error);
+            alert("新增失敗！可能是 Firebase 權限規則拒絕寫入，或網路連線有問題。");
         }
     },
 
