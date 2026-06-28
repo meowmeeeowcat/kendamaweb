@@ -28,37 +28,43 @@
                     <button class="btn-count" data-add="-1">-1</button>
                 </div>
                 
+                <!-- 手選與隨機控制區塊（已修正隨機換招按鈕字體顏色為白色） -->
                 <div style="margin-top: 15px; display: flex; gap: 8px; justify-content: center; align-items: center;">
                     <select id="select-stable-trick" style="flex: 1; padding: 6px; border-radius: 4px; border: 1px solid #ddd; font-size: 0.85rem;">
                         <option value="">-- 手選熟練招式 --</option>
                     </select>
-                    <button id="btn-stable-complete" class="btn-action" style="background-color: #34495e; padding: 6px 12px; font-size: 0.85rem; white-space: nowrap;">🎲 隨機換招</button>
+                    <button id="btn-stable-complete" class="btn-action" style="background-color: #34495e; color: white; padding: 6px 12px; font-size: 0.85rem; white-space: nowrap; border: none; border-radius: 4px; cursor: pointer;">🎲 隨機換招</button>
                 </div>
             </div>
         </section>
 
         <section class="card-section">
             <h2>🔥 新招式挑戰</h2>
-            <div id="challenge-trick-card" class="card">
-                <h2>🏆 新招式挑戰 (未解鎖)</h2>
-                <div class="trick-name">載入中...</div>
-                <div class="counter-display">
-                    <span>今日練習: <span class="today-count">-</span> 次</span>
-                </div>
-                <div class="button-group">
-                    <button class="btn-count" data-add="1">+1</button>
-                    <button class="btn-count" data-add="-1">-1</button>
-                </div>
-                
-                <div style="margin-top: 15px; display: flex; gap: 8px; justify-content: center; align-items: center;">
-                    <select id="select-challenge-trick" style="flex: 1; padding: 6px; border-radius: 4px; border: 1px solid #ddd; font-size: 0.85rem;">
-                        <option value="">-- 手選挑戰招式 --</option>
-                    </select>
-                    <button id="btn-challenge-skip" class="btn-action" style="background-color: #34495e; padding: 6px 12px; font-size: 0.85rem; white-space: nowrap;">🎲 隨機換招</button>
-                </div>
-                
-                <button id="btn-challenge-complete" class="btn-action" style="margin-top: 10px; width: 100%; background-color: #2ecc71;">✅ 挑戰成功 (解鎖並移入熟練池)</button>
+            <!-- 新招式挑戰卡片 -->
+        <div id="challenge-trick-card" class="card">
+            <h2>🏆 新招式挑戰 (未解鎖)</h2>
+            <div class="trick-name">載入中...</div>
+            <div class="counter-display">
+                <span>今日練習: <span class="today-count">-</span> 次</span>
             </div>
+            <div class="button-group">
+                <button class="btn-count" data-add="1">+1</button>
+                <button class="btn-count" data-add="-1">-1</button>
+            </div>
+            
+            <!-- 手選與隨機控制區塊（已修正隨機換招按鈕字體顏色為白色） -->
+            <div style="margin-top: 15px; display: flex; gap: 8px; justify-content: center; align-items: center;">
+                <select id="select-challenge-trick" style="flex: 1; padding: 6px; border-radius: 4px; border: 1px solid #ddd; font-size: 0.85rem;">
+                    <option value="">-- 手選挑戰招式 --</option>
+                </select>
+                <button id="btn-challenge-skip" class="btn-action" style="background-color: #34495e; color: white; padding: 6px 12px; font-size: 0.85rem; white-space: nowrap; border: none; border-radius: 4px; cursor: pointer;">🎲 隨機換招</button>
+            </div>
+            
+            <!-- 🌟 修正點：縮短按鈕長度，使其居中且寬度適中 -->
+            <div style="text-align: center; margin-top: 15px;">
+                <button id="btn-challenge-complete" class="btn-action" style="display: inline-block; padding: 8px 20px; background-color: #2ecc71; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">✅ 挑戰成功 (解鎖並移入熟練池)</button>
+            </div>
+        </div>
         </section>
     </main>
 
