@@ -83,10 +83,20 @@
     </div>
 
     <div id="modal-library" class="modal hidden">
-        <div class="modal-content library-content">
-            <h3>📖 劍玉完整招式庫</h3>
-            <div id="library-list" class="library-list"></div>
-            <button id="btn-library-close" class="btn-secondary">返回首頁</button>
+        <div class="modal-content library-content" style="position: relative;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin: 0;">📖 完整招式庫</h3>
+                <button id="btn-add-trick-trigger" style="background-color: #e67e22; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; cursor: pointer;">➕ 新增招式</button>
+            </div>
+
+            <div id="add-trick-input-zone" class="hidden" style="background-color: #f8f9fa; padding: 10px; border-radius: 8px; margin-bottom: 15px; border: 1px dashed #e67e22;">
+                <input type="text" id="new-trick-name" placeholder="請輸入新招式名稱 (例如: 宇宙一周)" style="width: 70%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem;">
+                <button id="btn-add-trick-submit" style="width: 25%; padding: 8px; background-color: #2ecc71; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">確認</button>
+            </div>
+
+            <div id="library-list" class="library-list">
+                </div>
+            <button id="btn-library-close" class="btn-secondary" style="margin-top: 15px;">返回首頁</button>
         </div>
     </div>
 
