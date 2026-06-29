@@ -1,20 +1,10 @@
-// library.js
+// js/library.js
 import { db } from "./firebase-config.js";
-import { doc, getDoc, setDoc, collection, getDocs } from "firebase/firestore";
-import { tricksData } from "./tricks-data.js"; // 🌟 確保你有正確引入 254 個招式的完整資料檔案
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { tricksData } from "./tricks-data.js"; 
 
 export const TrickLibrary = {
-    // 如果匯入失敗，就用舊的 8 個保底，確保程式絕對不崩潰
-    defaultTricks: (typeof tricksData !== 'undefined' && tricksData) ? tricksData : [
-        { id: 1, name: "大皿 (Big Cup)", totalCount: 0, todayCount: 0, isUnlocked: true, category: "皿技", subcategory: "基礎技" },
-        { id: 2, name: "小皿 (Small Cup)", totalCount: 0, todayCount: 0, isUnlocked: true, category: "皿技", subcategory: "基礎技" },
-        { id: 3, name: "中皿 (Base Cup)", totalCount: 0, todayCount: 0, isUnlocked: true, category: "皿技", subcategory: "基礎技" },
-        { id: 4, name: "蠟燭 (Candle)", totalCount: 0, todayCount: 0, isUnlocked: false, category: "皿技", subcategory: "基礎技" },
-        { id: 5, name: "飛行大皿 (Airplane)", totalCount: 0, todayCount: 0, isUnlocked: false, category: "皿技", subcategory: "基礎技" },
-        { id: 6, name: "日本一周 (Around Japan)", totalCount: 0, todayCount: 0, isUnlocked: false, category: "手眼技", subcategory: "一周技" },
-        { id: 7, name: "世界一周 (Around the World)", totalCount: 0, todayCount: 0, isUnlocked: false, category: "手眼技", subcategory: "一周技" },
-        { id: 8, name: "燈塔 (Lighthouse)", totalCount: 0, todayCount: 0, isUnlocked: false, category: "平衡技", subcategory: "燈塔池" }
-    ],
+    defaultTricks: (typeof tricksData !== 'undefined' && tricksData) ? tricksData : [],
     tricks: [],
 
     getTodayDateString() {
@@ -28,19 +18,17 @@ export const TrickLibrary = {
         this.domClose = document.getElementById('btn-library-close');
         this.domList = document.getElementById('library-list');
 
-        if (this.domTrigger) this.domTrigger.addEventListener('click', () => this.openModal());
-        if (this.domClose) this.domClose.addEventListener('click', () => this.closeModal());
+        // 🌟 修正點：防禦型 DOM 綁定，避免在還沒讀取到 ID 前事件蒸發
+        if (this.domTrigger) this.domTrigger.onclick = () => this.openModal();
+        if (this.domClose) this.domClose.onclick = () => this.closeModal();
 
-        // 🌟 核心修正：網頁一打開，在還沒載入雲端或未登入前，立刻灌入本地 254 個完整招式！
         this.resetLocalTricks();
     },
 
     resetLocalTricks() {
-        // 深拷貝預設招式，避免污染原始資料
         this.tricks = JSON.parse(JSON.stringify(this.defaultTricks));
     },
 
-    // 🌟 核心修正：安全的雲端與本地同步邏輯
     async loadUserProgress(username) {
         if (!username) { this.resetLocalTricks(); return; }
         try {
@@ -53,14 +41,13 @@ export const TrickLibrary = {
                 const isNewDay = (savedDate !== this.getTodayDateString());
                 const cloudTricks = cloudData.tricks;
 
-                // 🌟 以本地 254 個招式為骨架，只拿雲端的次數跟解鎖狀態來填入
                 this.tricks = this.defaultTricks.map(dt => {
                     let ct = null;
                     if (cloudTricks) {
                         if (Array.isArray(cloudTricks)) {
                             ct = cloudTricks.find(t => t && t.id === dt.id);
                         } else {
-                            ct = cloudTricks[dt.id]; // 支援 Map 格式
+                            ct = cloudTricks[dt.id];
                         }
                     }
 
@@ -72,11 +59,9 @@ export const TrickLibrary = {
                             isUnlocked: ct.isUnlocked !== undefined ? ct.isUnlocked : dt.isUnlocked
                         };
                     }
-                    // 雲端如果沒有這個招式（代表是新增的招式），就直接用本地預設
                     return { ...dt };
                 });
 
-                // 載入玩家個人自訂的外加招式
                 if (cloudData.customTricks && Array.isArray(cloudData.customTricks)) {
                     cloudData.customTricks.forEach(ct => {
                         this.tricks.push({
@@ -89,7 +74,7 @@ export const TrickLibrary = {
                 this.resetLocalTricks();
             }
         } catch (e) {
-            console.error("Firebase 進度下載失敗，啟動本地招式庫防護:", e);
+            console.error("Firebase 載入失敗:", e);
             this.resetLocalTricks();
         }
     },

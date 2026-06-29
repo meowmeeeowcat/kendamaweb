@@ -1,3 +1,4 @@
+// js/app.js
 import { AuthSystem } from "./auth.js";
 import { TrickLibrary } from "./library.js";
 
@@ -8,14 +9,15 @@ export const AppController = {
     historyChallengeIds: [],
 
     init() {
-        // 先建立本地的基礎招式庫
+        // 初始化本地招式庫數據
         TrickLibrary.init();
-        // 啟動登入機制（沒登入也會驅動 AppController 渲染）
+        // 啟動登入管理系統
         AuthSystem.init(); 
         
+        // 確保綁定事件
         this.bindCounterEvents();
         this.bindActionEvents();
-        this.bindSelectEvents(); 
+        this.bindSelectEvents();
         
         window.AppController = this;
     },
@@ -68,7 +70,7 @@ export const AppController = {
         const todayEl = card.querySelector('.today-count');
 
         if (!this.currentStableTrick) {
-            if (nameEl) nameEl.innerText = "暫無熟練招式 (請先挑戰並解鎖招式)";
+            if (nameEl) nameEl.innerText = "暫無熟練招式 (請先從挑戰中解鎖)";
             if (targetEl) targetEl.innerText = "-";
             if (todayEl) todayEl.innerText = "-";
             return;
@@ -147,6 +149,7 @@ export const AppController = {
     },
 
     bindCounterEvents() {
+        // 🌟 修正點：使用 currentTarget 防止點擊子元素失效
         document.querySelectorAll('#stable-trick-card .btn-count').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 if (!this.currentStableTrick) return;
@@ -155,7 +158,6 @@ export const AppController = {
                 TrickLibrary.updateCount(this.currentStableTrick.id, amount);
                 this.renderStableCard();
                 
-                // 🌟 只在有登入時，才執行雲端進度存檔
                 if (AuthSystem.currentUser) {
                     await TrickLibrary.saveUserProgress(AuthSystem.currentUser);
                 }
@@ -168,11 +170,11 @@ export const AppController = {
         const btnNextChallenge = document.getElementById('btn-next-challenge');
         const btnChallengeSuccess = document.getElementById('btn-challenge-success');
 
-        if (btnNextStable) btnNextStable.addEventListener('click', () => this.nextStableTrick());
-        if (btnNextChallenge) btnNextChallenge.addEventListener('click', () => this.nextChallengeTrick());
+        if (btnNextStable) btnNextStable.onclick = () => this.nextStableTrick();
+        if (btnNextChallenge) btnNextChallenge.onclick = () => this.nextChallengeTrick();
 
         if (btnChallengeSuccess) {
-            btnChallengeSuccess.addEventListener('click', async () => {
+            btnChallengeSuccess.onclick = async () => {
                 if (!this.currentChallengeTrick) return;
                 
                 const targetId = this.currentChallengeTrick.id;
@@ -189,7 +191,7 @@ export const AppController = {
                 this.refreshChallengeSelect();
                 this.nextChallengeTrick();
                 this.nextStableTrick();
-            });
+            };
         }
     },
 
@@ -198,7 +200,7 @@ export const AppController = {
         const selectChallenge = document.getElementById('select-challenge-trick');
 
         if (selectStable) {
-            selectStable.addEventListener('change', (e) => {
+            selectStable.onchange = (e) => {
                 const selectedId = parseInt(e.target.value, 10);
                 if (!selectedId) return;
                 const found = TrickLibrary.tricks.find(t => t.id === selectedId);
@@ -206,11 +208,11 @@ export const AppController = {
                     this.currentStableTrick = found;
                     this.renderStableCard();
                 }
-            });
+            };
         }
 
         if (selectChallenge) {
-            selectChallenge.addEventListener('change', (e) => {
+            selectChallenge.onchange = (e) => {
                 const selectedId = parseInt(e.target.value, 10);
                 if (!selectedId) return;
                 const found = TrickLibrary.tricks.find(t => t.id === selectedId);
@@ -218,7 +220,7 @@ export const AppController = {
                     this.currentChallengeTrick = found;
                     this.renderChallengeCard();
                 }
-            });
+            };
         }
     }
 };
