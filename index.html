@@ -105,7 +105,7 @@
 
     <div id="modal-stats" class="modal hidden">
         <div class="modal-content library-content">
-            <h3 style="margin-top: 0; margin-bottom: 15px;">📊 當前練習統計</h3>
+            <h3 style="margin-top: 0; margin-bottom: 15px;">📊 今日練習統計</h3>
             <div id="stats-list" class="library-list" style="font-size: 0.95rem;">
                 </div>
             <button class="btn-secondary" style="margin-top: 15px;" onclick="closeStatsModal()">關閉</button>
@@ -123,7 +123,6 @@
     <script type="module">
         import { AppController } from "./js/app.js";
         
-        // DOM 完全載入後才執行初始化
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => {
                 AppController.init();
@@ -134,16 +133,66 @@
             setupCustomActions();
         }
 
-        // 擴充前端互動邏輯（完成切換與統計彈窗控制）
         function setupCustomActions() {
-            // 保留給 app.js 核心事件綁定擴充使用
+            // 保留給 app.js 擴充使用
         }
     </script>
 
-    <script>
-        // 為了不干涉你 app.js 裡的核心資料邏輯，這裡提供按鈕直連的模擬展示控制
-        // 實際整合時，請確保這些前端 function 有同步呼叫到你 AppController 內的資料變更
+    <script type="module">
+        import { TrickLibrary } from "./js/library.js";
+        
+        // 將動態取得當日清單的函式掛載至 window 供按鈕呼叫
+        window.openStatsModal = function() {
+            const modal = document.getElementById('modal-stats');
+            const list = document.getElementById('stats-list');
+            if (!modal || !list) return;
 
+            // 1. 取得今日日期字串
+            const todayStr = (TrickLibrary && typeof TrickLibrary.getTodayDateString === 'function') 
+                ? TrickLibrary.getTodayDateString() 
+                : new Date().toLocaleDateString();
+
+            // 2. 篩選出今日有練習次數（todayCount > 0）的所有招式
+            const activeTricks = (TrickLibrary && Array.isArray(TrickLibrary.tricks))
+                ? TrickLibrary.tricks.filter(t => t.todayCount > 0)
+                : [];
+
+            // 3. 動態渲染清單內容
+            if (activeTricks.length === 0) {
+                list.innerHTML = `
+                    <div class="lib-item" style="justify-content: center; color: #95a5a6; font-style: italic; padding: 20px 0;">
+                        今日暫無練習紀錄，開始動起來吧！
+                    </div>
+                `;
+            } else {
+                list.innerHTML = activeTricks.map(trick => `
+                    <div class="lib-item">
+                        <div>
+                            <span style="font-size:0.7rem; background:#3498db; color:white; padding:1px 4px; border-radius:3px; margin-right:5px;">
+                                ${trick.subcategory || '招式'}
+                            </span>
+                            <strong style="color:#2c3e50;">${trick.name}</strong>
+                        </div>
+                        <span class="lib-count-info" style="color: #e67e2 orange; font-weight: bold;">
+                            今日: <span style="font-size: 1.1rem; color: #e67e22;">${trick.todayCount}</span> 次
+                        </span>
+                    </div>
+                `).join('');
+            }
+
+            // 4. 加上雲端同步提示
+            list.innerHTML += `
+                <div class="lib-item" style="color: #7f8c8d; font-size:0.8rem; text-align:center; justify-content:center; background-color: #f8f9fa; border-top: 1px dashed #ddd; margin-top: 10px;">
+                    📅 日期：${todayStr} ｜ 紀錄已實時上傳雲端
+                </div>
+            `;
+
+            modal.classList.remove('hidden');
+        };
+    </script>
+
+    <script>
+        // 前端模擬控制與介面相容性邏輯
         function adjustStableCount(amount) {
             const countEl = document.getElementById('stable-today-count');
             let current = parseInt(countEl.innerText) || 0;
@@ -152,34 +201,10 @@
         }
 
         function completeAndNextStable() {
-            // 1. 次數 +1
             adjustStableCount(1);
-            
-            // 2. 觸發更換下一招 (觸發原本隨機換招按鈕的點擊事件)
             const nextBtn = document.getElementById('btn-next-stable');
             if (nextBtn) {
                 nextBtn.click();
-            }
-        }
-
-        function openStatsModal() {
-            const modal = document.getElementById('modal-stats');
-            const list = document.getElementById('stats-list');
-            if (modal && list) {
-                // 讀取當前畫面上的招式做簡單呈現，實際應從資料庫撈取
-                const stableName = document.getElementById('stable-trick-name').innerText;
-                const stableCount = document.getElementById('stable-today-count').innerText;
-                
-                list.innerHTML = `
-                    <div class="lib-item">
-                        <span>當前熟練招式: <strong>${stableName}</strong></span>
-                        <span class="lib-count-info">今日已練: ${stableCount} 次</span>
-                    </div>
-                    <div class="lib-item" style="color: #7f8c8d; font-size:0.85rem; text-align:center; justify-content:center;">
-                        完整歷史進度已同步保存於雲端
-                    </div>
-                `;
-                modal.classList.remove('hidden');
             }
         }
 
