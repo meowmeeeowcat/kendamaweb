@@ -149,7 +149,6 @@ export const AppController = {
     },
 
     bindCounterEvents() {
-        // 🌟 修正點：使用 currentTarget 防止點擊子元素失效
         document.querySelectorAll('#stable-trick-card .btn-count').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 if (!this.currentStableTrick) return;
@@ -180,13 +179,17 @@ export const AppController = {
                 const targetId = this.currentChallengeTrick.id;
                 const targetName = this.currentChallengeTrick.name;
                 
+                // 🎯 1. 執行解鎖（此時 library.js 內部會將該招式的 todayCount 與 totalCount 自動 +1）
                 TrickLibrary.unlockTrick(targetId);
+                
                 alert(`🏆 恭喜成功解鎖【${targetName}】！`);
                 
+                // 🎯 2. 同步資料庫（因次數已變為 1，會被判定為有數據並正確歸檔至當日歷史紀錄中）
                 if (AuthSystem.currentUser) {
                     await TrickLibrary.saveUserProgress(AuthSystem.currentUser);
                 }
 
+                // 3. 刷新介面與重抽招式
                 this.refreshStableSelect();
                 this.refreshChallengeSelect();
                 this.nextChallengeTrick();
