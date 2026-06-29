@@ -3,15 +3,15 @@
    ========================================================================== */
    :root {
     --primary-color: #14b8a6;       /* 主色調：藍綠色 */
-    --primary-dark: #14b8a6;        /* 標題、Header等皆統一使用藍綠色 */
+    --primary-dark: #14b8a6;        
     --primary-light: #c2c2c2;       
-    --bg-color: #f1f5f9;            /* 【修改】將背景灰色調淺（使用乾淨的淺灰藍色調） */
+    --bg-color: #f1f5f9;            /* 背景淺灰色 */
     --text-main: #1f2937;           
     --text-muted: #6b7280;          
-    --action-success: #14b8a6;      /* 成功/確認按鈕色使用藍綠色 */
+    --action-success: #14b8a6;      
     --action-secondary: #19b7da;    /* 隨機換招按鈕色使用指定的藍色 */
     --card-border-stable: #14b8a6;   
-    --card-border-challenge: #19b7da;/* 挑戰池使用指定的藍色 */
+    --card-border-challenge: #19b7da;
 }
 
 * { 
@@ -34,35 +34,37 @@ body {
    2. 頁首排版 (App Header)
    ========================================================================== */
 .app-header { 
-    background-color: #14b8a6; /* 【修改】確實恢復 Header 的藍綠色底色 */
+    background-color: #14b8a6; 
     color: #ffffff; 
-    padding: 12px 20px; /* 【修改】上下留出舒適的內邊距邊框，提升易讀性與呼吸感 */
-    box-shadow: 0 2px 8px rgba(20, 184, 166, 0.2); /* 優化易讀性陰影 */
+    padding: 12px 20px; 
+    box-shadow: 0 2px 8px rgba(20, 184, 166, 0.2); 
     display: flex;
-    flex-direction: column; /* 垂直排列以便文字完美居中且維持狀態欄易讀性 */
+    flex-direction: column; 
     justify-content: center;
     align-items: center;
-    gap: 4px;
-    height: 90px; /* 高度占滿 50% 核心高度相容 */
+    position: relative; /* 🎯 設為相對定位，以便子項目能精準定位到右下角 */
+    height: 90px; 
 }
 
 .app-header h1 { 
     font-size: 2rem; 
-    color: #ffffff; /* 【修改】字體顏色改成純白色 */
+    color: #ffffff; 
     height: 50%; 
     display: flex;
     align-items: center;
-    justify-content: center; /* 【修改】將標題文字完美水平置中 */
+    justify-content: center; 
     letter-spacing: 1px;
     font-weight: 700;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); /* 提升白色文字在藍綠底上的易讀性 */
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); 
 }
 
 .user-status { 
-    font-size: 0.9rem; /* 稍微縮小狀態字樣，使整體結構主次分明、更加易讀 */
-    color: rgba(255, 255, 255, 0.9); /* 精緻化半透明白 */
+    font-size: 0.85rem; 
+    color: rgba(255, 255, 255, 0.95); 
     font-weight: 500;
-    text-align: center; /* 狀態同步居中，保持視覺對齊 */
+    position: absolute; /* 🎯 【修改】絕對定位，將選手資訊固定於 header 右下角 */
+    right: 16px;
+    bottom: 8px;
 }
 
 /* ==========================================================================
@@ -78,13 +80,19 @@ body {
     margin-bottom: 24px; 
 }
 
-/* 今日穩固招式與新招式挑戰字體優化 */
-.card-section h2 { 
-    font-size: 1.6rem; /* 字體大小只比劍玉招式練習小一點 */
-    color: #ffffff; /* 將字換成白色 */
+/* 🎯 【修改】各自獨立設定區塊標題顏色 */
+.card-section.stable-section h2 { 
+    font-size: 1.4rem; 
+    color: #14b8a6; /* 「今日穩固招式」改成藍綠色 */
     margin-bottom: 12px; 
     font-weight: 600;
-    text-transform: uppercase;
+}
+
+.card-section.challenge-section h2 { 
+    font-size: 1.4rem; 
+    color: #19b7da; /* 「新招式挑戰」改成藍色 */
+    margin-bottom: 12px; 
+    font-weight: 600;
 }
 
 .trick-card { 
@@ -111,12 +119,6 @@ body {
     font-weight: bold; 
     color: var(--text-main); 
     word-break: break-all;
-}
-
-.trick-desc { 
-    font-size: 0.85rem; 
-    color: var(--text-muted); 
-    margin-top: 4px; 
 }
 
 /* 卡片內控制區 */
@@ -147,7 +149,6 @@ body {
     border-color: var(--primary-color);
 }
 
-/* 行動版規格化按鈕系統 */
 .btn-action {
     display: inline-flex;
     align-items: center;
@@ -216,7 +217,6 @@ body {
     gap: 8px;
 }
 
-/* 計數小按鈕規格化 */
 .btn-count { 
     width: 44px; 
     height: 40px; 
@@ -263,7 +263,6 @@ body {
     flex-direction: column;
 }
 
-/* 擴展招式庫彈窗至適中舒適寬度 */
 #modal-library .modal-content {
     max-width: 520px;
 }
@@ -303,7 +302,6 @@ body {
     gap: 10px; 
 }
 
-/* 招式庫彈窗專用大、小分類雙欄排列 */
 .filter-group {
     display: flex;
     gap: 8px;
@@ -318,7 +316,6 @@ body {
     border-radius: 8px;
 }
 
-/* 列表元件排版 */
 .lib-item { 
     padding: 12px; 
     border-bottom: 1px solid #f1f5f9; 
@@ -345,7 +342,6 @@ body {
     word-break: break-all;
 }
 
-/* 總計次數防換行排版 */
 .lib-count-info { 
     white-space: nowrap; 
     flex-shrink: 0;      
@@ -368,9 +364,8 @@ body {
     font-size: 0.9rem;
 }
 
-/* 完整招式庫內部的「返回首頁」按鈕高度優化 */
 #btn-library-close {
-    height: 48px; /* 【修改】加大按鈕高度，創造絕佳的黃金點擊比例 */
+    height: 48px; 
     font-size: 1rem;
     font-weight: 600;
     letter-spacing: 0.5px;
