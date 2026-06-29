@@ -18,7 +18,6 @@ export const TrickLibrary = {
         this.domClose = document.getElementById('btn-library-close');
         this.domList = document.getElementById('library-list');
 
-        // 🌟 修正點：防禦型 DOM 綁定，避免在還沒讀取到 ID 前事件蒸發
         if (this.domTrigger) this.domTrigger.onclick = () => this.openModal();
         if (this.domClose) this.domClose.onclick = () => this.closeModal();
 
@@ -79,14 +78,27 @@ export const TrickLibrary = {
         }
     },
 
+    // 🎯 核心修改：優化儲存邏輯，新增每日歷史紀錄歸檔
     async saveUserProgress(username) {
         if (!username) return; 
         try {
             const docRef = doc(db, "users", username);
             const tricksMap = {};
             const customTricksArray = [];
+            
+            // 建立當天日期的獨立歷史紀錄物件
+            const todayDate = this.getTodayDateString();
+            const todayLogs = {};
 
             this.tricks.forEach(t => {
+                // 只有當天有練習（count > 0）的招式才寫入歷史紀錄，精簡資料庫容量
+                if (t.todayCount > 0) {
+                    todayLogs[t.id] = {
+                        name: t.name,
+                        count: t.todayCount
+                    };
+                }
+
                 if (t.isCustom) {
                     customTricksArray.push(t);
                 } else {
@@ -100,11 +112,16 @@ export const TrickLibrary = {
                 }
             });
 
+            // 結構化寫入：將當日數據封裝至 history.[YYYY-MM-DD] 下
             await setDoc(docRef, {
                 tricks: tricksMap,
                 customTricks: customTricksArray,
-                lastSavedDate: this.getTodayDateString()
+                lastSavedDate: todayDate,
+                history: {
+                    [todayDate]: todayLogs
+                }
             }, { merge: true });
+            
         } catch (e) {
             console.error("同步至 Firebase 失敗:", e);
         }
