@@ -105,9 +105,9 @@
 
     <div id="modal-stats" class="modal hidden">
         <div class="modal-content library-content">
-            <h3 style="margin-top: 0; margin-bottom: 15px;">📊 今日練習統計</h3>
+            <h3 style="margin-top: 0; margin-bottom: 15px;">📊 歷年每日練習統計</h3>
             <div id="stats-list" class="library-list" style="font-size: 0.95rem;">
-                </div>
+            </div>
             <button class="btn-secondary" style="margin-top: 15px;" onclick="closeStatsModal()">關閉</button>
         </div>
     </div>
@@ -134,65 +134,69 @@
         }
 
         function setupCustomActions() {
-            // 保留給 app.js 擴充使用
         }
     </script>
 
     <script type="module">
         import { TrickLibrary } from "./js/library.js";
         
-        // 將動態取得當日清單的函式掛載至 window 供按鈕呼叫
         window.openStatsModal = function() {
             const modal = document.getElementById('modal-stats');
             const list = document.getElementById('stats-list');
             if (!modal || !list) return;
 
-            // 1. 取得今日日期字串
-            const todayStr = (TrickLibrary && typeof TrickLibrary.getTodayDateString === 'function') 
-                ? TrickLibrary.getTodayDateString() 
-                : new Date().toLocaleDateString();
+            const history = TrickLibrary.historyData || {};
+            const dates = Object.keys(history).sort((a, b) => b.localeCompare(a)); // 日期從新到舊排序
 
-            // 2. 篩選出今日有練習次數（todayCount > 0）的所有招式
-            const activeTricks = (TrickLibrary && Array.isArray(TrickLibrary.tricks))
-                ? TrickLibrary.tricks.filter(t => t.todayCount > 0)
-                : [];
-
-            // 3. 動態渲染清單內容
-            if (activeTricks.length === 0) {
+            if (dates.length === 0) {
                 list.innerHTML = `
                     <div class="lib-item" style="justify-content: center; color: #95a5a6; font-style: italic; padding: 20px 0;">
-                        今日暫無練習紀錄，開始動起來吧！
+                        暫無任何歷史練習紀錄，開始練習並同步吧！
                     </div>
                 `;
             } else {
-                list.innerHTML = activeTricks.map(trick => `
-                    <div class="lib-item">
-                        <div>
-                            <span style="font-size:0.7rem; background:#3498db; color:white; padding:1px 4px; border-radius:3px; margin-right:5px;">
-                                ${trick.subcategory || '招式'}
-                            </span>
-                            <strong style="color:#2c3e50;">${trick.name}</strong>
-                        </div>
-                        <span class="lib-count-info" style="color: #e67e2 orange; font-weight: bold;">
-                            今日: <span style="font-size: 1.1rem; color: #e67e22;">${trick.todayCount}</span> 次
-                        </span>
+                let htmlContent = "";
+                
+                // 依日期分組展開
+                dates.forEach(date => {
+                    const tricksLogged = history[date];
+                    const trickIds = Object.keys(tricksLogged);
+                    
+                    if (trickIds.length > 0) {
+                        htmlContent += `
+                            <div style="background-color: #ecf0f1; padding: 6px 12px; font-weight: bold; font-size: 0.85rem; color: #2c3e50; border-radius: 4px; margin-top: 10px;">
+                                📅 日期：${date}
+                            </div>
+                        `;
+                        
+                        trickIds.forEach(id => {
+                            const item = tricksLogged[id];
+                            htmlContent += `
+                                <div class="lib-item" style="padding-left: 20px;">
+                                    <div>
+                                        <strong style="color:#34495e;">${item.name}</strong>
+                                    </div>
+                                    <span class="lib-count-info">
+                                        練習 <span style="font-size: 1.05rem; color: #e67e22; font-weight:bold;">${item.count}</span> 次
+                                    </span>
+                                </div>
+                            `;
+                        });
+                    }
+                });
+                
+                list.innerHTML = htmlContent || `
+                    <div class="lib-item" style="justify-content: center; color: #95a5a6; font-style: italic; padding: 20px 0;">
+                        暫無有效練習數據
                     </div>
-                `).join('');
+                `;
             }
-
-            // 4. 加上雲端同步提示
-            list.innerHTML += `
-                <div class="lib-item" style="color: #7f8c8d; font-size:0.8rem; text-align:center; justify-content:center; background-color: #f8f9fa; border-top: 1px dashed #ddd; margin-top: 10px;">
-                    📅 日期：${todayStr} ｜ 紀錄已實時上傳雲端
-                </div>
-            `;
 
             modal.classList.remove('hidden');
         };
     </script>
 
     <script>
-        // 前端模擬控制與介面相容性邏輯
         function adjustStableCount(amount) {
             const countEl = document.getElementById('stable-today-count');
             let current = parseInt(countEl.innerText) || 0;

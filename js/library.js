@@ -6,6 +6,7 @@ import { tricksData } from "./tricks-data.js";
 export const TrickLibrary = {
     defaultTricks: (typeof tricksData !== 'undefined' && tricksData) ? tricksData : [],
     tricks: [],
+    historyData: {}, // 🎯 新增：用來暫存從 Firebase 撈出來的歷史紀錄物件
 
     getTodayDateString() {
         const today = new Date();
@@ -26,6 +27,7 @@ export const TrickLibrary = {
 
     resetLocalTricks() {
         this.tricks = JSON.parse(JSON.stringify(this.defaultTricks));
+        this.historyData = {};
     },
 
     async loadUserProgress(username) {
@@ -39,6 +41,9 @@ export const TrickLibrary = {
                 const savedDate = cloudData.lastSavedDate || "";
                 const isNewDay = (savedDate !== this.getTodayDateString());
                 const cloudTricks = cloudData.tricks;
+
+                // 🎯 讀取並保存雲端完整的歷史紀錄
+                this.historyData = cloudData.history || {};
 
                 this.tricks = this.defaultTricks.map(dt => {
                     let ct = null;
@@ -78,7 +83,6 @@ export const TrickLibrary = {
         }
     },
 
-    // 🎯 核心修改：優化儲存邏輯，新增每日歷史紀錄歸檔
     async saveUserProgress(username) {
         if (!username) return; 
         try {
@@ -86,17 +90,18 @@ export const TrickLibrary = {
             const tricksMap = {};
             const customTricksArray = [];
             
-            // 建立當天日期的獨立歷史紀錄物件
             const todayDate = this.getTodayDateString();
             const todayLogs = {};
+            let hasTodayData = false;
 
             this.tricks.forEach(t => {
-                // 只有當天有練習（count > 0）的招式才寫入歷史紀錄，精簡資料庫容量
+                // 🎯 嚴格判定：只有今天大於 0 次的招式，才寫入當日紀錄
                 if (t.todayCount > 0) {
                     todayLogs[t.id] = {
                         name: t.name,
                         count: t.todayCount
                     };
+                    hasTodayData = true;
                 }
 
                 if (t.isCustom) {
@@ -112,15 +117,22 @@ export const TrickLibrary = {
                 }
             });
 
-            // 結構化寫入：將當日數據封裝至 history.[YYYY-MM-DD] 下
-            await setDoc(docRef, {
+            const uploadPayload = {
                 tricks: tricksMap,
                 customTricks: customTricksArray,
-                lastSavedDate: todayDate,
-                history: {
+                lastSavedDate: todayDate
+            };
+
+            // 🎯 核心修改：只有當天確實有數據產生時，才包裝上傳歷史物件
+            if (hasTodayData) {
+                uploadPayload.history = {
                     [todayDate]: todayLogs
-                }
-            }, { merge: true });
+                };
+                // 更新本地暫存，讓統計視窗免重整立即可見
+                this.historyData[todayDate] = todayLogs;
+            }
+
+            await setDoc(docRef, uploadPayload, { merge: true });
             
         } catch (e) {
             console.error("同步至 Firebase 失敗:", e);
