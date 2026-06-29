@@ -5,7 +5,7 @@
     --primary-color: #14b8a6;       /* 主色調：藍綠色 */
     --primary-dark: #14b8a6;        /* 標題、Header等皆統一使用藍綠色 */
     --primary-light: #c2c2c2;       
-    --bg-color: #c2c2c2;            /* 背景改成 #c2c2c2 */
+    --bg-color: #f1f5f9;            /* 【修改】將背景灰色調淺（使用乾淨的淺灰藍色調） */
     --text-main: #1f2937;           
     --text-muted: #6b7280;          
     --action-success: #14b8a6;      /* 成功/確認按鈕色使用藍綠色 */
@@ -28,36 +28,41 @@ body {
     line-height: 1.5;
     padding-bottom: 85px; 
     -webkit-tap-highlight-color: transparent;
-} lounge
-
+}
 
 /* ==========================================================================
    2. 頁首排版 (App Header)
    ========================================================================== */
 .app-header { 
-    background-color: var(--primary-dark); 
+    background-color: #14b8a6; /* 【修改】確實恢復 Header 的藍綠色底色 */
     color: #ffffff; 
-    padding: 16px 20px; 
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    padding: 12px 20px; /* 【修改】上下留出舒適的內邊距邊框，提升易讀性與呼吸感 */
+    box-shadow: 0 2px 8px rgba(20, 184, 166, 0.2); /* 優化易讀性陰影 */
     display: flex;
+    flex-direction: column; /* 垂直排列以便文字完美居中且維持狀態欄易讀性 */
+    justify-content: center;
     align-items: center;
-    justify-content: space-between; /* 讓標題靠左，使用者狀態移至右邊 */
-    height: 80px; /* 給定固定高度以精確計算標題占比 */
+    gap: 4px;
+    height: 90px; /* 高度占滿 50% 核心高度相容 */
 }
 
 .app-header h1 { 
-    font-size: 2rem; /* 放大標題文字 */
-    height: 50%; /* 高度占滿 header 的 50% */
+    font-size: 2rem; 
+    color: #ffffff; /* 【修改】字體顏色改成純白色 */
+    height: 50%; 
     display: flex;
     align-items: center;
+    justify-content: center; /* 【修改】將標題文字完美水平置中 */
     letter-spacing: 1px;
+    font-weight: 700;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); /* 提升白色文字在藍綠底上的易讀性 */
 }
 
 .user-status { 
-    font-size: 1.1rem; /* 放大選手/使用者狀態字樣 */
-    color: #ffffff; 
-    font-weight: bold;
-    text-align: right;
+    font-size: 0.9rem; /* 稍微縮小狀態字樣，使整體結構主次分明、更加易讀 */
+    color: rgba(255, 255, 255, 0.9); /* 精緻化半透明白 */
+    font-weight: 500;
+    text-align: center; /* 狀態同步居中，保持視覺對齊 */
 }
 
 /* ==========================================================================
@@ -75,7 +80,7 @@ body {
 
 /* 今日穩固招式與新招式挑戰字體優化 */
 .card-section h2 { 
-    font-size: 1.6rem; /* 字體大小只比劍玉招式練習(2rem)小一點 */
+    font-size: 1.6rem; /* 字體大小只比劍玉招式練習小一點 */
     color: #ffffff; /* 將字換成白色 */
     margin-bottom: 12px; 
     font-weight: 600;
@@ -83,7 +88,7 @@ body {
 }
 
 .trick-card { 
-    background-color: #ffffff; /* 卡片背景用白色 */
+    background-color: #ffffff; 
     border-radius: 12px; 
     padding: 18px; 
     box-shadow: 0 4px 12px rgba(0,0,0,0.06); 
@@ -247,7 +252,7 @@ body {
 }
 
 .modal-content { 
-    background-color: #ffffff; /* 彈窗背景白色 */
+    background-color: #ffffff; 
     border-radius: 16px; 
     padding: 20px; 
     width: 100%; 
@@ -313,7 +318,7 @@ body {
     border-radius: 8px;
 }
 
-/* 列表元件排版：強固單行次數，名稱自適應伸縮 */
+/* 列表元件排版 */
 .lib-item { 
     padding: 12px; 
     border-bottom: 1px solid #f1f5f9; 
@@ -363,6 +368,14 @@ body {
     font-size: 0.9rem;
 }
 
+/* 完整招式庫內部的「返回首頁」按鈕高度優化 */
+#btn-library-close {
+    height: 48px; /* 【修改】加大按鈕高度，創造絕佳的黃金點擊比例 */
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
 /* ==========================================================================
    7. 底部固定導覽列 (Bottom Navigation Bar)
    ========================================================================== */
@@ -370,7 +383,7 @@ body {
     position: fixed; 
     bottom: 0; left: 0; right: 0; 
     height: 68px; 
-    background-color: #14b8a6; /* 導覽列藍綠色 */
+    background-color: #14b8a6; 
     display: flex; 
     justify-content: space-between; 
     align-items: center; 
@@ -380,14 +393,13 @@ body {
     z-index: 999;
 }
 
-/* 底部按鈕樣式修改 */
 .bottom-nav .btn-nav { 
     flex: 1; 
     height: 44px; 
     border: none; 
     border-radius: 8px; 
-    background-color: #ffffff; /* 按鈕底色改成白色 */
-    color: #14b8a6; /* 字的顏色改成藍綠色 */
+    background-color: #ffffff; 
+    color: #14b8a6; 
     font-size: 0.82rem; 
     font-weight: bold; 
     cursor: pointer; 
@@ -397,6 +409,6 @@ body {
 }
 
 .bottom-nav .btn-nav.accent { 
-    background-color: #ffffff; /* 強調按鈕底色亦改成白色 */
-    color: #14b8a6; /* 字的顏色改成藍綠色 */
+    background-color: #ffffff; 
+    color: #14b8a6; 
 }
