@@ -2,16 +2,16 @@
    1. 全域重置與藍綠色調定義 (Teal Theme & Resets)
    ========================================================================== */
    :root {
-    --primary-color: #14b8a6;       /* 主色調：質感藍綠色 */
-    --primary-dark: #14b8a6;        /* 深藍綠色：用於標題、Header及強調態 */
-    --primary-light: #c2c2c2;       /* 淺藍綠色：用於標籤底色或卡片細節 */
-    --bg-color: #ffffff;            /* 畫面的微藍綠淺色背景 */
-    --text-main: #1f2937;           /* 主要文字深灰色：提高對比易讀性 */
-    --text-muted: #6b7280;          /* 次要輔助文字 */
-    --action-success: #0d9488;      /* 成功/確認按鈕色（較深的藍綠） */
-    --action-secondary: #19b7da;    /* 次要/隨機換招按鈕色（中灰色） */
-    --card-border-stable: #14b8a6;   /* 熟練池左邊條 */
-    --card-border-challenge: #22d3ee;/* 挑戰池左邊條 */
+    --primary-color: #14b8a6;       /* 主色調：藍綠色 */
+    --primary-dark: #14b8a6;        /* 標題、Header等皆統一使用藍綠色 */
+    --primary-light: #c2c2c2;       
+    --bg-color: #c2c2c2;            /* 背景改成 #c2c2c2 */
+    --text-main: #1f2937;           
+    --text-muted: #6b7280;          
+    --action-success: #14b8a6;      /* 成功/確認按鈕色使用藍綠色 */
+    --action-secondary: #19b7da;    /* 隨機換招按鈕色使用指定的藍色 */
+    --card-border-stable: #14b8a6;   
+    --card-border-challenge: #19b7da;/* 挑戰池使用指定的藍色 */
 }
 
 * { 
@@ -24,9 +24,9 @@
 body { 
     background-color: var(--bg-color); 
     color: var(--text-main); 
-    font-size: 15px; /* 適中的基準字體大小 */
+    font-size: 15px; 
     line-height: 1.5;
-    padding-bottom: 85px; /* 為底部導覽列預留安全距離，防止遮擋 */
+    padding-bottom: 85px; 
     -webkit-tap-highlight-color: transparent;
 }
 
@@ -59,7 +59,7 @@ body {
 .app-content { 
     padding: 16px; 
     max-width: 600px;
-    margin: 0 auto; /* 電腦版畫面上置中 */
+    margin: 0 auto; 
 }
 
 .card-section { 
@@ -67,20 +67,20 @@ body {
 }
 
 .card-section h2 { 
-    font-size: 15px; 
-    color: var(--primary-dark); 
+    font-size: 0.95rem; 
+    color: #1f2937; 
     margin-bottom: 10px; 
     font-weight: 600;
     text-transform: uppercase;
 }
 
 .trick-card { 
-    background-color: #ffffff; 
+    background-color: #ffffff; /* 卡片背景用白色 */
     border-radius: 12px; 
     padding: 18px; 
-    box-shadow: 0 4px 12px rgba(15, 118, 110, 0.06); 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06); 
     display: flex; 
-    flex-direction: column; /* 手機優先：上下排版結構 */
+    flex-direction: column; 
     gap: 16px;
     border-left: 6px solid var(--card-border-stable);
 }
@@ -119,7 +119,7 @@ body {
    ========================================================================== */
 .app-select { 
     width: 100%; 
-    height: 42px; /* 統一手機黃金點擊高度 */
+    height: 42px; 
     padding: 0 12px; 
     border: 1px solid #cdd5df; 
     border-radius: 8px; 
@@ -140,7 +140,7 @@ body {
     align-items: center;
     justify-content: center;
     width: 100%;
-    height: 42px; /* 寬度100%，高度尺寸完全一致 */
+    height: 42px; 
     border: none;
     border-radius: 8px;
     font-size: 0.95rem;
@@ -195,7 +195,7 @@ body {
 .counter-item .value {
     font-size: 1.2rem;
     font-weight: bold;
-    color: var(--primary-dark);
+    color: var(--text-main);
 }
 
 .button-group {
@@ -217,7 +217,7 @@ body {
 }
 
 .btn-count[data-add="-1"] { 
-    background-color: #94a3b8; /* 減號採用穩重的中灰色 */
+    background-color: #94a3b8; 
 }
 
 /* ==========================================================================
@@ -226,7 +226,7 @@ body {
 .modal { 
     position: fixed; 
     top: 0; left: 0; right: 0; bottom: 0; 
-    background-color: rgba(15, 23, 42, 0.6); /* 質感遮罩 */
+    background-color: rgba(15, 23, 42, 0.6); 
     display: flex; 
     justify-content: center; 
     align-items: center; 
@@ -239,11 +239,11 @@ body {
 }
 
 .modal-content { 
-    background-color: #ffffff; 
+    background-color: #ffffff; /* 彈窗背景白色 */
     border-radius: 16px; 
     padding: 20px; 
     width: 100%; 
-    max-width: 440px; /* 控制彈窗最大寬度 */
+    max-width: 440px; 
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15); 
     max-height: 85vh;
     display: flex;
@@ -257,7 +257,7 @@ body {
 
 .modal h3 { 
     font-size: 1.15rem; 
-    color: var(--primary-dark); 
+    color: var(--text-main); 
     margin-bottom: 12px; 
     font-weight: bold;
     text-align: center;
@@ -305,7 +305,7 @@ body {
     border-radius: 8px;
 }
 
-/* 列表元件完美排版：強固單行次數，名稱自適應伸縮 */
+/* 列表元件排版：強固單行次數，名稱自適應伸縮 */
 .lib-item { 
     padding: 12px; 
     border-bottom: 1px solid #f1f5f9; 
@@ -322,7 +322,7 @@ body {
 
 .lib-item > div:first-child {
     flex: 1;
-    min-width: 0; /* 防擠壓破版關鍵 */
+    min-width: 0; 
 }
 
 .item-title {
@@ -334,8 +334,8 @@ body {
 
 /* 總計次數防換行排版 */
 .lib-count-info { 
-    white-space: nowrap; /* 核心修正：字體不折行 */
-    flex-shrink: 0;      /* 核心修正：保護寬度不縮減 */
+    white-space: nowrap; 
+    flex-shrink: 0;      
     font-size: 0.85rem; 
     color: var(--text-muted); 
     text-align: right;
@@ -362,24 +362,24 @@ body {
     position: fixed; 
     bottom: 0; left: 0; right: 0; 
     height: 68px; 
-    background-color: #ffffff; 
+    background-color: #14b8a6; /* 導覽列改成藍綠色 */
     display: flex; 
     justify-content: space-between; 
     align-items: center; 
     padding: 0 12px; 
-    box-shadow: 0 -4px 12px rgba(15, 118, 110, 0.08); 
+    box-shadow: 0 -4px 12px rgba(0,0,0,0.1); 
     gap: 8px; 
     z-index: 999;
 }
 
-/* 導覽按鈕規格完全一致 */
+/* 導覽按鈕改為白字與透明背景透明度搭配，達成與藍綠底色一致之風格 */
 .bottom-nav .btn-nav { 
     flex: 1; 
     height: 44px; 
     border: none; 
     border-radius: 8px; 
-    background-color: #f1f5f9; 
-    color: var(--primary-dark); 
+    background-color: rgba(255, 255, 255, 0.15); 
+    color: #ffffff; /* 導覽列文字改成白色 */
     font-size: 0.82rem; 
     font-weight: bold; 
     cursor: pointer; 
@@ -389,6 +389,6 @@ body {
 }
 
 .bottom-nav .btn-nav.accent { 
-    background-color: var(--primary-light); 
-    color: var(--primary-dark); 
+    background-color: rgba(255, 255, 255, 0.3); 
+    color: #ffffff; /* 導覽列白字 */
 }
