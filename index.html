@@ -3,177 +3,190 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>招式修練追蹤器</title>
-    <link rel="stylesheet" href="style.css">
+    <title>劍玉招式練習庫</title>
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-    <div class="app-header">
-        <h1>招式修練追蹤器</h1>
-        <div class="user-status">持續修練，頂峰相見</div>
-    </div>
+    <header class="app-header">
+        <h1>劍玉練習庫</h1>
+        <div id="user-status" class="user-status">🟢 未登入 (功能皆可使用，進度將不儲存)</div>
+    </header>
 
-    <div class="app-content">
-        
-        <div class="card-section" id="new-skill-section">
-            <h2>🔥 新招式挑戰</h2>
-            <div class="trick-card challenge">
+    <main class="app-content">
+        <section class="card-section">
+            <h2>🔥 今日穩固 (熟練池)</h2>
+            <div id="stable-trick-card" class="trick-card">
                 <div class="trick-info">
-                    <div class="trick-name" id="new-skill-name">暫無新招式</div>
-                    <div class="trick-desc">完成 10 次即可晉升為熟練招式</div>
-                </div>
-                <div class="counter-area">
-                    <div class="count-display">
-                        <span class="today-count" id="new-skill-count">0</span> / 10
-                    </div>
-                    <div class="challenge-actions">
-                        <button class="btn-count btn-success" id="new-skill-btn" onclick="practiceNewSkill()">完成一次</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card-section" id="mastered-skill-section">
-            <h2>✨ 熟練招複習</h2>
-            <div class="trick-card">
-                <div class="trick-info">
-                    <div class="trick-name" id="mastered-skill-name">暫無熟練招式</div>
+                    <div class="trick-name" id="stable-trick-name">載入中...</div>
                     <div class="trick-desc">精益求精，持續複習</div>
+                    
+                    <div style="margin-top: 15px; display: flex; gap: 8px; flex-direction: column;">
+                        <select id="select-stable-trick" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ddd;">
+                            <option value="">-- 手選熟練招式 --</option>
+                        </select>
+                        <button id="btn-next-stable" class="btn-action-main">
+                            🎲 隨機換熟練招式
+                        </button>
+                    </div>
                 </div>
+
                 <div class="counter-area">
                     <div class="count-display">
-                        總計 <span class="today-count" id="mastered-skill-count">0</span> 次
+                        目標: <span class="target-count" id="stable-target-count">-</span> 次
                     </div>
-                    <div class="count-actions">
-                        <button class="btn-count btn-warning" id="mastered-skill-btn" onclick="practiceMasteredSkill()">完成並切換</button>
+                    <div class="count-display">
+                        今日: <span class="today-count" id="stable-today-count">0</span> 次
+                    </div>
+                    <div class="count-actions" style="margin-top: 5px;">
+                        <button class="btn-count" data-add="1" onclick="adjustStableCount(1)">+1</button>
+                        <button class="btn-count" data-add="-1" onclick="adjustStableCount(-1)">-1</button>
+                    </div>
+                    <button class="btn-action-main btn-warning" style="width: 100%; margin-top: 8px;" onclick="completeAndNextStable()">
+                        完成並切換
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section class="card-section">
+            <h2>🎯 新招式挑戰</h2>
+            <div id="challenge-trick-card" class="trick-card challenge">
+                <div class="trick-info">
+                    <div class="trick-name" id="challenge-trick-name">載入中...</div>
+                    <div class="trick-desc">挑戰成功即可解鎖至熟練池</div>
+                    
+                    <div style="margin-top: 15px; display: flex; gap: 8px; flex-direction: column;">
+                        <select id="select-challenge-trick" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ddd;">
+                            <option value="">-- 手選挑戰招式 --</option>
+                        </select>
+                        <button id="btn-next-challenge" class="btn-action-main" style="background-color: #e74c3c;">
+                            🎲 隨機換挑戰招式
+                        </button>
+                    </div>
+                </div>
+
+                <div class="counter-area">
+                    <div class="challenge-actions">
+                        <button id="btn-challenge-success" class="btn-action-main btn-success" style="margin-top: 0; padding: 12px;">
+                            🏆 挑戰成功<br>(解鎖)
+                        </button>
                     </div>
                 </div>
             </div>
+        </section>
+    </main>
+
+    <nav class="bottom-nav">
+        <button id="btn-login-trigger" class="nav-btn left-btn">👤 選手登入</button>
+        <button id="btn-library-trigger" class="nav-btn right-btn">📖 完整招式庫</button>
+        <button id="btn-stats-trigger" class="nav-btn" style="background-color: #34495e; flex: 0 0 30%;" onclick="openStatsModal()">📊 查看統計</button>
+    </nav>
+
+    <div id="modal-login" class="modal hidden">
+        <div class="modal-content">
+            <h3>👤 選手登入 / 切換帳號</h3>
+            <p style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 10px;">輸入您的獨特暱稱，系統將會為您在雲端保存專屬練習紀錄。</p>
+            <input type="text" id="login-username" placeholder="請輸入您的暱稱 (例如: 貓貓)">
+            <div class="modal-actions">
+                <button id="btn-login-submit" class="btn-success" style="color: white; font-weight: bold;">登入</button>
+                <button id="btn-login-close" class="btn-secondary">取消</button>
+            </div>
         </div>
-
     </div>
 
-    <div class="bottom-nav">
-        <button class="nav-btn left-btn" onclick="addNewSkillPrompt()">新增招式</button>
-        <button class="nav-btn right-btn" id="stats-btn" onclick="showStats()">查看統計</button>
+    <div id="modal-library" class="modal hidden">
+        <div class="modal-content library-content">
+            <h3 style="margin-top: 0; margin-bottom: 15px;">📖 完整招式庫</h3>
+            <div id="library-list" class="library-list"></div>
+            <button id="btn-library-close" class="btn-secondary" style="margin-top: 15px;">返回首頁</button>
+        </div>
     </div>
 
-<script>
-    // 狀態資料
-    let state = {
-        newSkills: ["基礎正拳", "旋風踢"], 
-        masteredSkills: [
-            { name: "閃避步法", count: 5 },
-            { name: "反擊直拳", count: 12 }
-        ], 
-        currentNewIndex: 0,
-        currentMasteredIndex: 0,
-        currentNewPracticeCount: 0
-    };
+    <div id="modal-stats" class="modal hidden">
+        <div class="modal-content library-content">
+            <h3 style="margin-top: 0; margin-bottom: 15px;">📊 當前練習統計</h3>
+            <div id="stats-list" class="library-list" style="font-size: 0.95rem;">
+                </div>
+            <button class="btn-secondary" style="margin-top: 15px;" onclick="closeStatsModal()">關閉</button>
+        </div>
+    </div>
 
-    // 初始化顯示
-    function init() {
-        updateNewSkillDisplay();
-        updateMasteredSkillDisplay();
-    }
-
-    // 更新新招式畫面
-    function updateNewSkillDisplay() {
-        const nameEl = document.getElementById('new-skill-name');
-        const countEl = document.getElementById('new-skill-count');
-        const btnEl = document.getElementById('new-skill-btn');
-
-        if (state.newSkills.length > 0 && state.currentNewIndex < state.newSkills.length) {
-            nameEl.innerText = state.newSkills[state.currentNewIndex];
-            countEl.innerText = state.currentNewPracticeCount;
-            btnEl.disabled = false;
-        } else {
-            nameEl.innerText = "🎉 所有新招式皆已練成！";
-            countEl.innerText = "-";
-            btnEl.disabled = true;
+    <script type="importmap">
+        {
+          "imports": {
+            "firebase/app": "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js",
+            "firebase/firestore": "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"
+          }
         }
-    }
-
-    // 更新熟練招畫面
-    function updateMasteredSkillDisplay() {
-        const nameEl = document.getElementById('mastered-skill-name');
-        const countEl = document.getElementById('mastered-skill-count');
-        const btnEl = document.getElementById('mastered-skill-btn');
-
-        if (state.masteredSkills.length > 0) {
-            // 確保索引不越界
-            if (state.currentMasteredIndex >= state.masteredSkills.length) {
-                state.currentMasteredIndex = 0;
-            }
-            const currentSkill = state.masteredSkills[state.currentMasteredIndex];
-            nameEl.innerText = currentSkill.name;
-            countEl.innerText = currentSkill.count;
-            btnEl.disabled = false;
-        } else {
-            nameEl.innerText = "暫無熟練招式";
-            countEl.innerText = "0";
-            btnEl.disabled = true;
-        }
-    }
-
-    // 新招式點擊邏輯
-    function practiceNewSkill() {
-        if (state.newSkills.length === 0) return;
+    </script>
+    <script type="module">
+        import { AppController } from "./js/app.js";
         
-        state.currentNewPracticeCount++;
-        if (state.currentNewPracticeCount >= 10) {
-            const skillName = state.newSkills[state.currentNewIndex];
-            // 晉升到熟練招
-            state.masteredSkills.push({ name: skillName, count: 0 });
-            alert(`恭喜！「${skillName}」已修練有成，晉升為熟練招式！`);
+        // DOM 完全載入後才執行初始化
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                AppController.init();
+                setupCustomActions();
+            });
+        } else {
+            AppController.init();
+            setupCustomActions();
+        }
+
+        // 擴充前端互動邏輯（完成切換與統計彈窗控制）
+        function setupCustomActions() {
+            // 保留給 app.js 核心事件綁定擴充使用
+        }
+    </script>
+
+    <script>
+        // 為了不干涉你 app.js 裡的核心資料邏輯，這裡提供按鈕直連的模擬展示控制
+        // 實際整合時，請確保這些前端 function 有同步呼叫到你 AppController 內的資料變更
+
+        function adjustStableCount(amount) {
+            const countEl = document.getElementById('stable-today-count');
+            let current = parseInt(countEl.innerText) || 0;
+            current = Math.max(0, current + amount);
+            countEl.innerText = current;
+        }
+
+        function completeAndNextStable() {
+            // 1. 次數 +1
+            adjustStableCount(1);
             
-            // 移除該新招式並重置計數
-            state.newSkills.splice(state.currentNewIndex, 1);
-            state.currentNewPracticeCount = 0;
+            // 2. 觸發更換下一招 (觸發原本隨機換招按鈕的點擊事件)
+            const nextBtn = document.getElementById('btn-next-stable');
+            if (nextBtn) {
+                nextBtn.click();
+            }
         }
-        updateNewSkillDisplay();
-        updateMasteredSkillDisplay();
-    }
 
-    // 熟練招點擊計數並自動切換下一招
-    function practiceMasteredSkill() {
-        if (state.masteredSkills.length === 0) return;
-
-        // 1. 當前招式次數加 1
-        state.masteredSkills[state.currentMasteredIndex].count++;
-
-        // 2. 切換到下一招（若到末尾則回到第一招）
-        state.currentMasteredIndex = (state.currentMasteredIndex + 1) % state.masteredSkills.length;
-
-        // 3. 渲染更新畫面
-        updateMasteredSkillDisplay();
-    }
-
-    // 新增招式彈窗
-    function addNewSkillPrompt() {
-        const skillName = prompt("請輸入新招式名稱：");
-        if (skillName && skillName.trim() !== "") {
-            state.newSkills.push(skillName.trim());
-            if (state.newSkills.length === 1) state.currentNewIndex = 0;
-            updateNewSkillDisplay();
+        function openStatsModal() {
+            const modal = document.getElementById('modal-stats');
+            const list = document.getElementById('stats-list');
+            if (modal && list) {
+                // 讀取當前畫面上的招式做簡單呈現，實際應從資料庫撈取
+                const stableName = document.getElementById('stable-trick-name').innerText;
+                const stableCount = document.getElementById('stable-today-count').innerText;
+                
+                list.innerHTML = `
+                    <div class="lib-item">
+                        <span>當前熟練招式: <strong>${stableName}</strong></span>
+                        <span class="lib-count-info">今日已練: ${stableCount} 次</span>
+                    </div>
+                    <div class="lib-item" style="color: #7f8c8d; font-size:0.85rem; text-align:center; justify-content:center;">
+                        完整歷史進度已同步保存於雲端
+                    </div>
+                `;
+                modal.classList.remove('hidden');
+            }
         }
-    }
 
-    // 統計按鈕點擊功能
-    function showStats() {
-        let statsMsg = "📊 當前修練進度統計：\n\n";
-        statsMsg += `未練成新招式數量：${state.newSkills.length} 招\n`;
-        statsMsg += `已解鎖熟練招式數量：${state.masteredSkills.length} 招\n\n`;
-        statsMsg += "熟練招明細：\n";
-        state.masteredSkills.forEach(s => {
-            statsMsg += `- ${s.name}: 複習 ${s.count} 次\n`;
-        });
-        alert(statsMsg);
-    }
-
-    // 頁面載入完成後執行
-    window.onload = init;
-</script>
-
+        function closeStatsModal() {
+            const modal = document.getElementById('modal-stats');
+            if (modal) modal.classList.add('hidden');
+        }
+    </script>
 </body>
 </html>
