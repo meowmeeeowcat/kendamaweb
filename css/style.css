@@ -3,13 +3,13 @@
    ========================================================================== */
    :root {
     --primary-color: #14b8a6;       /* 主色調：質感藍綠色 */
-    --primary-dark: #0f766e;        /* 深藍綠色：用於標題、Header及強調態 */
-    --primary-light: #ccfbf1;       /* 淺藍綠色：用於標籤底色或卡片細節 */
-    --bg-color: #f0fdfa;            /* 畫面的微藍綠淺色背景 */
+    --primary-dark: #03544d;        /* 深藍綠色：用於標題、Header及強調態 */
+    --primary-light: #e1f4f0;       /* 淺藍綠色：用於標籤底色或卡片細節 */
+    --bg-color: #ffffff;            /* 畫面的微藍綠淺色背景 */
     --text-main: #1f2937;           /* 主要文字深灰色：提高對比易讀性 */
     --text-muted: #6b7280;          /* 次要輔助文字 */
     --action-success: #0d9488;      /* 成功/確認按鈕色（較深的藍綠） */
-    --action-secondary: #9ca3af;    /* 次要/隨機換招按鈕色（中灰色） */
+    --action-secondary: #19b7da;    /* 次要/隨機換招按鈕色（中灰色） */
     --card-border-stable: #14b8a6;   /* 熟練池左邊條 */
     --card-border-challenge: #22d3ee;/* 挑戰池左邊條 */
 }

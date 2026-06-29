@@ -3,23 +3,22 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-    <title>劍玉招式練習庫</title>
+    <title>劍玉招式練習</title>
     <link rel="stylesheet" href="css/style.css"/>
 </head>
 <body>
 
     <header class="app-header">
-        <h1>劍玉練習庫</h1>
-        <div id="user-status" class="user-status">🟢 未登入 (功能皆可使用，進度將不儲存)</div>
+        <h1>劍玉招式練習</h1>
+        <div id="user-status" class="user-status">未登入 (功能皆可使用，進度將不儲存)</div>
     </header>
 
     <main class="app-content">
         <section class="card-section">
-            <h2>🔥 今日穩固 (熟練池)</h2>
+            <h2>今日穩固招式</h2>
             <div id="stable-trick-card" class="trick-card stable">
                 <div class="trick-info">
                     <div class="trick-name" id="stable-trick-name">載入中...</div>
-                    <div class="trick-desc">精益求精，持續複習</div>
                     
                     <div class="card-controls">
                         <select id="select-stable-trick" class="app-select">
@@ -49,11 +48,11 @@
         </section>
 
         <section class="card-section">
-            <h2>⚡ 下個目標 (挑戰池)</h2>
+            <h2>新招式挑戰</h2>
             <div id="challenge-trick-card" class="trick-card challenge">
                 <div class="trick-info">
                     <div class="trick-name" id="challenge-trick-name">載入中...</div>
-                    <div class="trick-desc">突破自我，解鎖新技能</div>
+                    
                     
                     <div class="card-controls">
                         <select id="select-challenge-trick" class="app-select">
@@ -71,14 +70,14 @@
     </main>
 
     <nav class="bottom-nav">
-        <button id="btn-login-trigger" class="btn-nav accent">👤 帳號登入</button>
-        <button id="btn-stats-trigger" class="btn-nav">📊 今日統計</button>
-        <button id="btn-library-trigger" class="btn-nav">📖 完整招式庫</button>
+        <button id="btn-login-trigger" class="btn-nav accent">帳號登入</button>
+        <button id="btn-stats-trigger" class="btn-nav">今日統計</button>
+        <button id="btn-library-trigger" class="btn-nav">完整招式庫</button>
     </nav>
 
     <div id="modal-login" class="modal hidden">
         <div class="modal-content">
-            <h3>👤 帳號登入</h3>
+            <h3>帳號登入</h3>
             <p class="modal-tip">輸入您的獨特暱稱，系統將會為您在雲端保存專屬練習紀錄。</p>
             <input type="text" id="login-username" placeholder="請輸入您的暱稱 (例如: 貓貓)">
             <div class="modal-actions">
@@ -90,7 +89,7 @@
 
     <div id="modal-stats" class="modal hidden">
         <div class="modal-content stats-content">
-            <h3>📊 今日練習統計</h3>
+            <h3>今日練習統計</h3>
             <div id="stats-list" class="library-list">
                 </div>
             <button id="btn-stats-close" class="btn-action secondary">返回首頁</button>
@@ -99,7 +98,7 @@
 
     <div id="modal-library" class="modal hidden">
         <div class="modal-content library-content">
-            <h3>📖 完整招式庫</h3>
+            <h3>完整招式庫</h3>
             
             <div class="filter-group">
                 <select id="filter-category" class="app-select">
