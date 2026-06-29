@@ -3,8 +3,8 @@
    ========================================================================== */
    :root {
     --primary-color: #14b8a6;       /* 主色調：質感藍綠色 */
-    --primary-dark: #03544d;        /* 深藍綠色：用於標題、Header及強調態 */
-    --primary-light: #e1f4f0;       /* 淺藍綠色：用於標籤底色或卡片細節 */
+    --primary-dark: #14b8a6;        /* 深藍綠色：用於標題、Header及強調態 */
+    --primary-light: #c2c2c2;       /* 淺藍綠色：用於標籤底色或卡片細節 */
     --bg-color: #ffffff;            /* 畫面的微藍綠淺色背景 */
     --text-main: #1f2937;           /* 主要文字深灰色：提高對比易讀性 */
     --text-muted: #6b7280;          /* 次要輔助文字 */
@@ -48,7 +48,7 @@ body {
 
 .user-status { 
     font-size: 0.85rem; 
-    color: #2dd4bf; 
+    color: #ffffff; 
     margin-top: 4px; 
     font-weight: 500;
 }
@@ -67,7 +67,7 @@ body {
 }
 
 .card-section h2 { 
-    font-size: 0.95rem; 
+    font-size: 15px; 
     color: var(--primary-dark); 
     margin-bottom: 10px; 
     font-weight: 600;

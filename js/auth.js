@@ -20,7 +20,7 @@ export const AuthSystem = {
             this.loginAs(lastUser); 
         } else {
             // 🌟 核心修正：沒登入時，直接使用本地 254 個招式驅動網頁，功能完全正常開放！
-            if (this.domStatus) this.domStatus.innerText = "🟢 未登入 (功能皆可使用，進度將不儲存)";
+            if (this.domStatus) this.domStatus.innerText = "未登入 (功能皆可使用，進度將不儲存)";
             AppController.onUserSwitched();
         }
     },
@@ -38,8 +38,8 @@ export const AuthSystem = {
         window.currentUser = username; 
         localStorage.setItem('kendama_last_user', username);
         
-        if (this.domStatus) this.domStatus.innerText = `👤 選手: ${username} (雲端同步中)`;
-        if (this.domTrigger) this.domTrigger.innerText = `👤 切換帳號`;
+        if (this.domStatus) this.domStatus.innerText = `選手: ${username}`;
+        if (this.domTrigger) this.domTrigger.innerText = `切換帳號`;
 
         try {
             // 1. 下載雲端次數並安全合流到 254 個招式內
