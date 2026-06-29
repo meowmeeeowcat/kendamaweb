@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
     <title>劍玉招式練習庫</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css"/>
 </head>
 <body>
 
@@ -16,109 +16,102 @@
     <main class="app-content">
         <section class="card-section">
             <h2>🔥 今日穩固 (熟練池)</h2>
-            <div id="stable-trick-card" class="trick-card">
+            <div id="stable-trick-card" class="trick-card stable">
                 <div class="trick-info">
                     <div class="trick-name" id="stable-trick-name">載入中...</div>
                     <div class="trick-desc">精益求精，持續複習</div>
                     
-                    <div style="margin-top: 15px; display: flex; gap: 8px; flex-direction: column;">
-                        <select id="select-stable-trick" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ddd;">
+                    <div class="card-controls">
+                        <select id="select-stable-trick" class="app-select">
                             <option value="">-- 手選熟練招式 --</option>
                         </select>
-                        <button id="btn-next-stable" class="btn-action-main">
-                            🎲 隨機換熟練招式
-                        </button>
+                        <button id="btn-next-stable" class="btn-action secondary">隨機換一招</button>
                     </div>
                 </div>
 
-                <div class="counter-area">
-                    <div class="count-display">
-                        目標: <span class="target-count" id="stable-target-count">-</span> 次
+                <div class="counter-box">
+                    <div class="counter-display">
+                        <div class="counter-item">
+                            <span class="label">目標</span>
+                            <span class="value target-count">-</span>
+                        </div>
+                        <div class="counter-item">
+                            <span class="label">今日</span>
+                            <span class="value today-count">-</span>
+                        </div>
                     </div>
-                    <div class="count-display">
-                        今日: <span class="today-count" id="stable-today-count">0</span> 次
+                    <div class="button-group">
+                        <button class="btn-count" data-add="1">+</button>
+                        <button class="btn-count" data-add="-1">-</button>
                     </div>
-                    <div class="count-actions" style="margin-top: 5px;">
-                        <button class="btn-count" data-add="1" onclick="adjustStableCount(1)">+1</button>
-                        <button class="btn-count" data-add="-1" onclick="adjustStableCount(-1)">-1</button>
-                    </div>
-                    <button class="btn-action-main btn-warning" style="width: 100%; margin-top: 8px;" onclick="completeAndNextStable()">
-                        完成並切換
-                    </button>
                 </div>
             </div>
         </section>
 
         <section class="card-section">
-            <h2>🎯 新招式挑戰</h2>
+            <h2>⚡ 下個目標 (挑戰池)</h2>
             <div id="challenge-trick-card" class="trick-card challenge">
                 <div class="trick-info">
                     <div class="trick-name" id="challenge-trick-name">載入中...</div>
-                    <div class="trick-desc">挑戰成功即可解鎖至熟練池</div>
+                    <div class="trick-desc">突破自我，解鎖新技能</div>
                     
-                    <div style="margin-top: 15px; display: flex; gap: 8px; flex-direction: column;">
-                        <select id="select-challenge-trick" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ddd;">
+                    <div class="card-controls">
+                        <select id="select-challenge-trick" class="app-select">
                             <option value="">-- 手選挑戰招式 --</option>
                         </select>
-                        <button id="btn-next-challenge" class="btn-action-main" style="background-color: #e74c3c;">
-                            🎲 隨機換挑戰招式
-                        </button>
+                        <button id="btn-next-challenge" class="btn-action secondary">隨機換一招</button>
                     </div>
                 </div>
-
-                <div class="counter-area">
-                    <div class="challenge-actions">
-                        <button id="btn-challenge-success" class="btn-action-main btn-success" style="margin-top: 0; padding: 12px;">
-                            🏆 挑戰成功<br>(解鎖)
-                        </button>
-                    </div>
+                
+                <div class="action-box">
+                    <button id="btn-challenge-success" class="btn-action success">挑戰成功</button>
                 </div>
             </div>
         </section>
     </main>
 
     <nav class="bottom-nav">
-        <button id="btn-login-trigger" class="nav-btn left-btn">👤 選手登入</button>
-        <button id="btn-library-trigger" class="nav-btn right-btn">📖 完整招式庫</button>
-        <button id="btn-stats-trigger" class="nav-btn" style="background-color: #34495e; flex: 0 0 30%;" onclick="openStatsModal()">📊 查看統計</button>
+        <button id="btn-login-trigger" class="btn-nav accent">👤 帳號登入</button>
+        <button id="btn-stats-trigger" class="btn-nav">📊 今日統計</button>
+        <button id="btn-library-trigger" class="btn-nav">📖 完整招式庫</button>
     </nav>
 
     <div id="modal-login" class="modal hidden">
         <div class="modal-content">
-            <h3>👤 選手登入 / 切換帳號</h3>
-            <p style="font-size: 0.85rem; color: #7f8c8d; margin-bottom: 10px;">輸入您的獨特暱稱，系統將會為您在雲端保存專屬練習紀錄。</p>
+            <h3>👤 帳號登入</h3>
+            <p class="modal-tip">輸入您的獨特暱稱，系統將會為您在雲端保存專屬練習紀錄。</p>
             <input type="text" id="login-username" placeholder="請輸入您的暱稱 (例如: 貓貓)">
             <div class="modal-actions">
-                <button id="btn-login-submit" class="btn-success" style="color: white; font-weight: bold;">登入</button>
-                <button id="btn-login-close" class="btn-secondary">取消</button>
+                <button id="btn-login-submit" class="btn-action success">登入</button>
+                <button id="btn-login-close" class="btn-action secondary">取消</button>
             </div>
+        </div>
+    </div>
+
+    <div id="modal-stats" class="modal hidden">
+        <div class="modal-content stats-content">
+            <h3>📊 今日練習統計</h3>
+            <div id="stats-list" class="library-list">
+                </div>
+            <button id="btn-stats-close" class="btn-action secondary">返回首頁</button>
         </div>
     </div>
 
     <div id="modal-library" class="modal hidden">
         <div class="modal-content library-content">
-            <h3 style="margin-top: 0; margin-bottom: 15px;">📖 完整招式庫</h3>
+            <h3>📖 完整招式庫</h3>
             
-            <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-                <select id="filter-category" style="flex: 1; padding: 8px; border-radius: 4px; border: 1px solid #ddd; font-size: 0.9rem;">
+            <div class="filter-group">
+                <select id="filter-category" class="app-select">
                     <option value="">全部大分類</option>
                 </select>
-                <select id="filter-subcategory" style="flex: 1; padding: 8px; border-radius: 4px; border: 1px solid #ddd; font-size: 0.9rem;">
+                <select id="filter-subcategory" class="app-select">
                     <option value="">全部小分類</option>
                 </select>
             </div>
 
             <div id="library-list" class="library-list"></div>
-            <button id="btn-library-close" class="btn-secondary" style="margin-top: 15px;">返回首頁</button>
-        </div>
-    </div>
-
-    <div id="modal-stats" class="modal hidden">
-        <div class="modal-content library-content">
-            <h3 style="margin-top: 0; margin-bottom: 15px;">📊 歷年每日練習統計</h3>
-            <div id="stats-list" class="library-list" style="font-size: 0.95rem;">
-            </div>
-            <button class="btn-secondary" style="margin-top: 15px;" onclick="closeStatsModal()">關閉</button>
+            <button id="btn-library-close" class="btn-action secondary">返回首頁</button>
         </div>
     </div>
 
@@ -132,19 +125,9 @@
     </script>
     <script type="module">
         import { AppController } from "./js/app.js";
-        
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => {
-                AppController.init();
-                setupCustomActions();
-            });
-        } else {
+        document.addEventListener("DOMContentLoaded", () => {
             AppController.init();
-            setupCustomActions();
-        }
-
-        function setupCustomActions() {
-        }
+        });
     </script>
 
     <script type="module">
@@ -154,78 +137,50 @@
             const modal = document.getElementById('modal-stats');
             const list = document.getElementById('stats-list');
             if (!modal || !list) return;
-
-            const history = TrickLibrary.historyData || {};
-            const dates = Object.keys(history).sort((a, b) => b.localeCompare(a)); // 日期從新到舊排序
-
-            if (dates.length === 0) {
-                list.innerHTML = `
-                    <div class="lib-item" style="justify-content: center; color: #95a5a6; font-style: italic; padding: 20px 0;">
-                        暫無任何歷史練習紀錄，開始練習並同步吧！
-                    </div>
-                `;
+            
+            const todayStr = TrickLibrary.getTodayDateString();
+            let htmlContent = "";
+            
+            if (TrickLibrary.historyData && TrickLibrary.historyData[todayStr]) {
+                const todayLogs = TrickLibrary.historyData[todayStr];
+                Object.keys(todayLogs).forEach(id => {
+                    const item = todayLogs[id];
+                    htmlContent += `
+                        <div class="lib-item">
+                            <div><strong class="item-title">${item.name}</strong></div>
+                            <span class="lib-count-info highlighted">今日: <span>${item.count}</span> 次</span>
+                        </div>
+                    `;
+                });
             } else {
-                let htmlContent = "";
-                
-                // 依日期分組展開
-                dates.forEach(date => {
-                    const tricksLogged = history[date];
-                    const trickIds = Object.keys(tricksLogged);
-                    
-                    if (trickIds.length > 0) {
+                TrickLibrary.tricks.forEach(trick => {
+                    if (trick.todayCount > 0) {
                         htmlContent += `
-                            <div style="background-color: #ecf0f1; padding: 6px 12px; font-weight: bold; font-size: 0.85rem; color: #2c3e50; border-radius: 4px; margin-top: 10px;">
-                                📅 日期：${date}
+                            <div class="lib-item">
+                                <div><strong class="item-title">${trick.name}</strong></div>
+                                <span class="lib-count-info highlighted">今日: <span>${trick.todayCount}</span> 次</span>
                             </div>
                         `;
-                        
-                        trickIds.forEach(id => {
-                            const item = tricksLogged[id];
-                            htmlContent += `
-                                <div class="lib-item" style="padding-left: 20px;">
-                                    <div>
-                                        <strong style="color:#34495e;">${item.name}</strong>
-                                    </div>
-                                    <span class="lib-count-info">
-                                        練習 <span style="font-size: 1.05rem; color: #e67e22; font-weight:bold;">${item.count}</span> 次
-                                    </span>
-                                </div>
-                            `;
-                        });
                     }
                 });
-                
-                list.innerHTML = htmlContent || `
-                    <div class="lib-item" style="justify-content: center; color: #95a5a6; font-style: italic; padding: 20px 0;">
-                        暫無有效練習數據
-                    </div>
-                `;
             }
-
+            
+            list.innerHTML = htmlContent || `
+                <div class="empty-tip">今日暫無有效練習數據</div>
+            `;
+            
             modal.classList.remove('hidden');
         };
-    </script>
 
-    <script>
-        function adjustStableCount(amount) {
-            const countEl = document.getElementById('stable-today-count');
-            let current = parseInt(countEl.innerText) || 0;
-            current = Math.max(0, current + amount);
-            countEl.innerText = current;
-        }
-
-        function completeAndNextStable() {
-            adjustStableCount(1);
-            const nextBtn = document.getElementById('btn-next-stable');
-            if (nextBtn) {
-                nextBtn.click();
-            }
-        }
-
-        function closeStatsModal() {
+        window.closeStatsModal = function() {
             const modal = document.getElementById('modal-stats');
             if (modal) modal.classList.add('hidden');
-        }
+        };
+
+        const btnStatsTrigger = document.getElementById('btn-stats-trigger');
+        const btnStatsClose = document.getElementById('btn-stats-close');
+        if (btnStatsTrigger) btnStatsTrigger.onclick = window.openStatsModal;
+        if (btnStatsClose) btnStatsClose.onclick = window.closeStatsModal;
     </script>
 </body>
 </html>

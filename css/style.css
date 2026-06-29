@@ -1,159 +1,237 @@
 /* ==========================================================================
-   1. 基礎重置與全域樣式 (Global Styles)
+   1. 全域重置與藍綠色調定義 (Teal Theme & Resets)
    ========================================================================== */
-   * { 
+   :root {
+    --primary-color: #14b8a6;       /* 主色調：質感藍綠色 */
+    --primary-dark: #0f766e;        /* 深藍綠色：用於標題、Header及強調態 */
+    --primary-light: #ccfbf1;       /* 淺藍綠色：用於標籤底色或卡片細節 */
+    --bg-color: #f0fdfa;            /* 畫面的微藍綠淺色背景 */
+    --text-main: #1f2937;           /* 主要文字深灰色：提高對比易讀性 */
+    --text-muted: #6b7280;          /* 次要輔助文字 */
+    --action-success: #0d9488;      /* 成功/確認按鈕色（較深的藍綠） */
+    --action-secondary: #9ca3af;    /* 次要/隨機換招按鈕色（中灰色） */
+    --card-border-stable: #14b8a6;   /* 熟練池左邊條 */
+    --card-border-challenge: #22d3ee;/* 挑戰池左邊條 */
+}
+
+* { 
     box-sizing: border-box; 
     margin: 0; 
     padding: 0; 
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
 }
 
 body { 
-    background-color: #f5f7fa; 
-    color: #333; 
-    padding-bottom: 80px; 
+    background-color: var(--bg-color); 
+    color: var(--text-main); 
+    font-size: 15px; /* 適中的基準字體大小 */
+    line-height: 1.5;
+    padding-bottom: 85px; /* 為底部導覽列預留安全距離，防止遮擋 */
+    -webkit-tap-highlight-color: transparent;
 }
 
 /* ==========================================================================
-   2. 頁首與使用者狀態 (Header & User Status)
+   2. 頁首排版 (App Header)
    ========================================================================== */
 .app-header { 
-    background-color: #2c3e50; 
-    color: #fff; 
-    padding: 15px; 
+    background-color: var(--primary-dark); 
+    color: #ffffff; 
+    padding: 16px 12px; 
     text-align: center; 
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
 .app-header h1 { 
-    font-size: 1.2rem; 
+    font-size: 1.3rem; 
+    letter-spacing: 1px;
 }
 
 .user-status { 
-    font-size: 0.8rem; 
-    color: #bdc3c7; 
+    font-size: 0.85rem; 
+    color: #2dd4bf; 
     margin-top: 4px; 
+    font-weight: 500;
 }
 
 /* ==========================================================================
-   3. 主要內容與卡片架構 (Main Content & Cards)
+   3. 主要佈局與卡片設計 (Layout & Responsive Cards)
    ========================================================================== */
 .app-content { 
-    padding: 15px; 
+    padding: 16px; 
+    max-width: 600px;
+    margin: 0 auto; /* 電腦版畫面上置中 */
 }
 
 .card-section { 
-    margin-bottom: 20px; 
+    margin-bottom: 24px; 
 }
 
 .card-section h2 { 
-    font-size: 1rem; 
-    color: #7f8c8d; 
-    margin-bottom: 8px; 
+    font-size: 0.95rem; 
+    color: var(--primary-dark); 
+    margin-bottom: 10px; 
+    font-weight: 600;
+    text-transform: uppercase;
 }
 
 .trick-card { 
-    background-color: #fff; 
+    background-color: #ffffff; 
     border-radius: 12px; 
-    padding: 20px; 
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
-    border-left: 5px solid #3498db; 
+    padding: 18px; 
+    box-shadow: 0 4px 12px rgba(15, 118, 110, 0.06); 
     display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
+    flex-direction: column; /* 手機優先：上下排版結構 */
+    gap: 16px;
+    border-left: 6px solid var(--card-border-stable);
 }
 
 .trick-card.challenge { 
-    border-left-color: #e74c3c; 
+    border-left-color: var(--card-border-challenge); 
 }
 
 .trick-info { 
     flex: 1; 
-    padding-right: 10px; 
 }
 
 .trick-name { 
-    font-size: 1.3rem; 
+    font-size: 1.25rem; 
     font-weight: bold; 
-    color: #2c3e50; 
+    color: var(--text-main); 
+    word-break: break-all;
 }
 
 .trick-desc { 
     font-size: 0.85rem; 
-    color: #95a5a6; 
+    color: var(--text-muted); 
     margin-top: 4px; 
 }
 
+/* 卡片內控制區 */
+.card-controls {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
 /* ==========================================================================
-   4. 計數器、下拉選單與按鈕群組 (Counters & Controls)
+   4. 表單元件與按鈕尺寸規格化 (Inputs, Selects & Buttons)
    ========================================================================== */
-.counter-display { 
-    margin-top: 15px; 
-    display: flex; 
-    gap: 15px; 
+.app-select { 
+    width: 100%; 
+    height: 42px; /* 統一手機黃金點擊高度 */
+    padding: 0 12px; 
+    border: 1px solid #cdd5df; 
+    border-radius: 8px; 
     font-size: 0.95rem; 
+    color: var(--text-main);
+    background-color: #ffffff;
+    outline: none;
+    transition: border-color 0.2s;
 }
 
-.counter-display span { 
-    background-color: #f8f9fa; 
-    padding: 6px 12px; 
-    border-radius: 6px; 
-    border: 1px solid #eaeaea; 
+.app-select:focus {
+    border-color: var(--primary-color);
 }
 
-.button-group { 
-    display: flex; 
-    flex-direction: column; 
-    gap: 8px; 
+/* 行動版規格化按鈕系統 */
+.btn-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 42px; /* 寬度100%，高度尺寸完全一致 */
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    user-select: none;
 }
 
+.btn-action:active {
+    transform: scale(0.98);
+}
+
+.btn-action.success {
+    background-color: var(--action-success);
+    color: #ffffff;
+}
+
+.btn-action.secondary {
+    background-color: var(--action-secondary);
+    color: #ffffff;
+}
+
+/* ==========================================================================
+   5. 計數器複合區塊排版 (Counter Box Layout)
+   ========================================================================== */
+.counter-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #f8fafc;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid #f1f5f9;
+}
+
+.counter-display {
+    display: flex;
+    gap: 16px;
+}
+
+.counter-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.counter-item .label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.counter-item .value {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--primary-dark);
+}
+
+.button-group {
+    display: flex;
+    gap: 8px;
+}
+
+/* 計數小按鈕規格化 */
 .btn-count { 
-    width: 50px; 
+    width: 44px; 
     height: 40px; 
     border: none; 
-    border-radius: 8px; 
-    background-color: #3498db; 
-    color: #fff; 
-    font-size: 1.1rem; 
-    font-weight: bold; 
+    border-radius: 6px; 
+    background-color: var(--primary-color); 
+    color: #ffffff; 
+    font-size: 1.3rem; 
+    font-weight: 600; 
     cursor: pointer; 
 }
 
 .btn-count[data-add="-1"] { 
-    background-color: #e74c3c; 
-}
-
-.btn-action { 
-    width: 100%; 
-    padding: 12px; 
-    background-color: #2ecc71; 
-    color: #fff; 
-    border: none; 
-    border-radius: 8px; 
-    font-size: 1rem; 
-    font-weight: bold; 
-    cursor: pointer; 
-    margin-top: 10px; 
-}
-
-.btn-action.secondary { 
-    background-color: #95a5a6; 
+    background-color: #94a3b8; /* 減號採用穩重的中灰色 */
 }
 
 /* ==========================================================================
-   5. 彈窗基底樣式 (Modal Base)
+   6. 完整功能彈窗系統 (Modal System & Library Filtering)
    ========================================================================== */
 .modal { 
     position: fixed; 
-    top: 0; 
-    left: 0; 
-    right: 0; 
-    bottom: 0; 
-    background-color: rgba(0,0,0,0.5); 
+    top: 0; left: 0; right: 0; bottom: 0; 
+    background-color: rgba(15, 23, 42, 0.6); /* 質感遮罩 */
     display: flex; 
     justify-content: center; 
     align-items: center; 
     z-index: 1000; 
-    padding: 20px;
+    padding: 16px;
 }
 
 .modal.hidden { 
@@ -161,147 +239,156 @@ body {
 }
 
 .modal-content { 
-    background-color: #fff; 
+    background-color: #ffffff; 
     border-radius: 16px; 
-    padding: 24px; 
+    padding: 20px; 
     width: 100%; 
-    max-width: 400px; 
-    box-shadow: 0 10px 25px rgba(0,0,0,0.15); 
+    max-width: 440px; /* 控制彈窗最大寬度 */
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15); 
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 擴展招式庫彈窗至適中舒適寬度 */
+#modal-library .modal-content {
+    max-width: 520px;
 }
 
 .modal h3 { 
-    font-size: 1.2rem; 
-    color: #2c3e50; 
-    margin-bottom: 8px; 
+    font-size: 1.15rem; 
+    color: var(--primary-dark); 
+    margin-bottom: 12px; 
+    font-weight: bold;
+    text-align: center;
+}
+
+.modal-tip {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    text-align: center;
 }
 
 .modal input[type="text"] { 
     width: 100%; 
-    padding: 12px; 
-    margin-bottom: 10px; 
-    border: 1px solid #ddd; 
+    height: 42px;
+    padding: 0 12px; 
+    margin-bottom: 16px; 
+    border: 1px solid #cdd5df; 
     border-radius: 8px; 
-    font-size: 1rem; 
+    font-size: 0.95rem; 
+    outline: none;
+}
+
+.modal input[type="text"]:focus {
+    border-color: var(--primary-color);
 }
 
 .modal-actions { 
     display: flex; 
     gap: 10px; 
-    margin-top: 15px; 
 }
 
-.modal-actions button, .btn-secondary { 
-    flex: 1; 
-    padding: 12px; 
-    border: none; 
-    border-radius: 8px; 
-    background-color: #34495e; 
-    color: #fff; 
-    cursor: pointer;
-}
-
-.modal-actions .btn-secondary, #btn-library-close { 
-    background-color: #bdc3c7; 
-    color: #333; 
-}
-
-/* ==========================================================================
-   6. 完整招式庫與歷史統計彈窗優化 (Library & Stats Customization)
-   ========================================================================== */
-.library-content { 
-    max-height: 80vh; 
-    display: flex; 
-    flex-direction: column; 
-}
-
-/* 🎯 擴展招式庫彈窗的最大寬度，給大/小分類選單與不換行文字完整的發揮空間 */
-#modal-library .modal-content {
-    max-width: 550px;
-    width: 92%;
+/* 招式庫彈窗專用大、小分類雙欄排列 */
+.filter-group {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
 }
 
 .library-list { 
     overflow-y: auto; 
     flex: 1; 
-    margin: 15px 0; 
+    margin: 8px 0 16px 0; 
+    border: 1px solid #f1f5f9;
+    border-radius: 8px;
 }
 
-/* 🎯 欄位彈性排版，確保左側文字長度自動適應，右側次數被視為安全整體 */
+/* 列表元件完美排版：強固單行次數，名稱自適應伸縮 */
 .lib-item { 
     padding: 12px; 
-    border-bottom: 1px solid #eee; 
+    border-bottom: 1px solid #f1f5f9; 
     display: flex; 
     justify-content: space-between; 
     align-items: center; 
     gap: 12px;
+    background-color: #ffffff;
+}
+
+.lib-item:last-child {
+    border-bottom: none;
 }
 
 .lib-item > div:first-child {
     flex: 1;
-    min-width: 0;
+    min-width: 0; /* 防擠壓破版關鍵 */
 }
 
-/* 🎯 統計與列表動態 Hover 動效 */
-#stats-list div { 
-    transition: background-color 0.2s ease; 
+.item-title {
+    font-size: 0.95rem;
+    color: var(--text-main);
+    display: block;
+    word-break: break-all;
 }
 
-#stats-list div:hover { 
-    background-color: #f8f9fa; 
-}
-
-/* 🎯 強制總計次數永遠保持在同一行，且不被長名稱擠壓 */
+/* 總計次數防換行排版 */
 .lib-count-info { 
-    white-space: nowrap;
-    flex-shrink: 0;
+    white-space: nowrap; /* 核心修正：字體不折行 */
+    flex-shrink: 0;      /* 核心修正：保護寬度不縮減 */
     font-size: 0.85rem; 
-    color: #7f8c8d; 
+    color: var(--text-muted); 
     text-align: right;
 }
 
+.lib-count-info.highlighted span {
+    font-size: 1rem;
+    color: var(--action-success);
+    font-weight: bold;
+}
+
+.empty-tip {
+    text-align: center;
+    color: var(--text-muted);
+    font-style: italic;
+    padding: 24px 0;
+    font-size: 0.9rem;
+}
+
 /* ==========================================================================
-   7. 底部導覽列固定排版 (Bottom Navigation Bar)
+   7. 底部固定導覽列 (Bottom Navigation Bar)
    ========================================================================== */
 .bottom-nav { 
     position: fixed; 
-    bottom: 0; 
-    left: 0; 
-    right: 0; 
-    height: 65px; 
-    background-color: #fff; 
+    bottom: 0; left: 0; right: 0; 
+    height: 68px; 
+    background-color: #ffffff; 
     display: flex; 
     justify-content: space-between; 
     align-items: center; 
-    padding: 0 15px; 
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.1); 
-    gap: 10px; 
-    z-index: 100;
+    padding: 0 12px; 
+    box-shadow: 0 -4px 12px rgba(15, 118, 110, 0.08); 
+    gap: 8px; 
+    z-index: 999;
 }
 
+/* 導覽按鈕規格完全一致 */
 .bottom-nav .btn-nav { 
     flex: 1; 
     height: 44px; 
     border: none; 
     border-radius: 8px; 
-    background-color: #2c3e50; 
-    color: #fff; 
-    font-size: 0.9rem; 
+    background-color: #f1f5f9; 
+    color: var(--primary-dark); 
+    font-size: 0.82rem; 
     font-weight: bold; 
     cursor: pointer; 
     display: flex; 
     align-items: center; 
     justify-content: center; 
-    transition: background-color 0.2s ease;
 }
 
-.bottom-nav .btn-nav:hover { 
-    background-color: #34495e; 
-}
-
-.bottom-nav #btn-login-trigger { 
-    background-color: #1abc9c; 
-}
-
-.bottom-nav #btn-login-trigger:hover { 
-    background-color: #16a085; 
+.bottom-nav .btn-nav.accent { 
+    background-color: var(--primary-light); 
+    color: var(--primary-dark); 
 }
