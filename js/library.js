@@ -183,6 +183,11 @@ export const TrickLibrary = {
 
     unlockTrick(id) {
         const trick = this.tricks.find(t => t.id === id);
-        if (trick) trick.isUnlocked = true;
+        if (trick) {
+            trick.isUnlocked = true;
+            // 🎯 關鍵：底層數據必須在這裡自動 +1，AppController 渲染與儲存時才拿得到 1 次
+            trick.todayCount = (trick.todayCount || 0) + 1;
+            trick.totalCount = (trick.totalCount || 0) + 1;
+        }
     }
 };
