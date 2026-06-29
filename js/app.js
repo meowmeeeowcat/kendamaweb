@@ -179,21 +179,29 @@ export const AppController = {
                 const targetId = this.currentChallengeTrick.id;
                 const targetName = this.currentChallengeTrick.name;
                 
-                // 🎯 1. 執行解鎖（此時 library.js 內部會將該招式的 todayCount 與 totalCount 自動 +1）
+                // 1. 執行解鎖（此時 library.js 內部會自動將次數 +1）
                 TrickLibrary.unlockTrick(targetId);
                 
+                // 🎯 修正核心：將剛剛解鎖成功的招式指定給當前熟練招式，以確保接下來渲染時資料正確同步
+                const unlockedTrick = TrickLibrary.tricks.find(t => t.id === targetId);
+                if (unlockedTrick) {
+                    this.currentStableTrick = unlockedTrick;
+                }
+
                 alert(`🏆 恭喜成功解鎖【${targetName}】！`);
                 
-                // 🎯 2. 同步資料庫（因次數已變為 1，會被判定為有數據並正確歸檔至當日歷史紀錄中）
+                // 2. 同步至 Firebase（因為次數已經是 1，會精準觸發歷史紀錄上傳）
                 if (AuthSystem.currentUser) {
                     await TrickLibrary.saveUserProgress(AuthSystem.currentUser);
                 }
 
-                // 3. 刷新介面與重抽招式
+                // 3. 刷新清單選項
                 this.refreshStableSelect();
                 this.refreshChallengeSelect();
+
+                // 🎯 修正核心：先將資料渲染至「今日穩固」卡片中顯示剛才+1的狀態，再抽取下一輪挑戰
+                this.renderStableCard(); 
                 this.nextChallengeTrick();
-                this.nextStableTrick();
             };
         }
     },
