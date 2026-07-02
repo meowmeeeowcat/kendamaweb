@@ -205,7 +205,7 @@ export const tricksData = [
   
     // ======= 7. 線技 =======
     { id: 193, name: "宇宙遊泳 (Space walk)", category: "線技", subcategory: "滯空", totalCount: 0, todayCount: 0, isUnlocked: false },
-    { id: 194, name: "?月殺法 (Moon circle)", category: "線技", subcategory: "滯空", totalCount: 0, todayCount: 0, isUnlocked: false },
+    { id: 194, name: "圓月殺法 (Moon circle)", category: "線技", subcategory: "滯空", totalCount: 0, todayCount: 0, isUnlocked: false },
     { id: 195, name: "稻妻宇宙遊泳 (2 turn space walk)", category: "線技", subcategory: "滯空", totalCount: 0, todayCount: 0, isUnlocked: false },
     { id: 196, name: "扇風機 (Hand roll)", category: "線技", subcategory: "滯空", totalCount: 0, todayCount: 0, isUnlocked: false },
     { id: 197, name: "空氣鞭 (Air whip)", category: "線技", subcategory: "滯空", totalCount: 0, todayCount: 0, isUnlocked: false },
