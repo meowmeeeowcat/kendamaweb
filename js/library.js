@@ -7,6 +7,7 @@ export const TrickLibrary = {
     defaultTricks: (typeof tricksData !== 'undefined' && tricksData) ? tricksData : [],
     tricks: [],
     historyData: {},
+    bulkUnlockMode: false,
     _saveTimer: null,
     _pendingUser: null,
 
@@ -70,6 +71,43 @@ export const TrickLibrary = {
         }
         if (this.domFilterSubcategory) {
             this.domFilterSubcategory.onchange = () => this.renderLibrary();
+        }
+
+        // 🎯 新增：一鍵解鎖模式相關 DOM 節點與事件綁定
+        this.domBulkToggle = document.getElementById('btn-bulk-unlock-toggle');
+        this.domBulkActions = document.getElementById('bulk-unlock-actions');
+        this.domBulkConfirm = document.getElementById('btn-bulk-unlock-confirm');
+        this.domBulkCancel = document.getElementById('btn-bulk-unlock-cancel');
+
+        if (this.domBulkToggle) this.domBulkToggle.onclick = () => this.setBulkUnlockMode(true);
+        if (this.domBulkCancel) this.domBulkCancel.onclick = () => this.setBulkUnlockMode(false);
+        if (this.domBulkConfirm) {
+            this.domBulkConfirm.onclick = async () => {
+                if (!this.domList) return;
+                const checked = this.domList.querySelectorAll('.bulk-unlock-checkbox:checked');
+                const ids = Array.from(checked).map(cb => cb.getAttribute('data-id'));
+
+                if (ids.length === 0) {
+                    alert('請至少勾選一個招式再確認解鎖！');
+                    return;
+                }
+
+                const count = this.bulkUnlock(ids);
+                this.setBulkUnlockMode(false);
+
+                if (window.AppController) {
+                    if (typeof window.AppController.refreshStableSelect === 'function') window.AppController.refreshStableSelect();
+                    if (typeof window.AppController.refreshChallengeSelect === 'function') window.AppController.refreshChallengeSelect();
+                    if (typeof window.AppController.onBulkUnlockDone === 'function') window.AppController.onBulkUnlockDone();
+                }
+
+                // 🎯 用 window.currentUser 而不是 import AuthSystem，避免 library.js 與 auth.js 互相 import 造成循環依賴
+                if (window.currentUser) {
+                    await this.saveUserProgress(window.currentUser);
+                }
+
+                alert(`🎉 已成功解鎖 ${count} 個招式！`);
+            };
         }
 
         this.resetLocalTricks();
@@ -278,7 +316,8 @@ export const TrickLibrary = {
             window.AppController.refreshStableSelect();
         }
         
-        // 🎯 新增：開啟彈窗時，重置並初始化分類下拉選單清單選項
+        // 🎯 每次開啟彈窗都重置為一般瀏覽模式，並初始化分類下拉選單清單選項
+        this.setBulkUnlockMode(false);
         this.initFilterOptions();
         
         this.renderLibrary(); 
@@ -287,6 +326,28 @@ export const TrickLibrary = {
     
     closeModal() { if (this.domLibraryModal) this.domLibraryModal.classList.add('hidden'); },
 
+    // 🎯 新增：切換一鍵解鎖模式（開啟時：只顯示未解鎖招式，並把次數顯示換成 checkbox）
+    setBulkUnlockMode(enabled) {
+        this.bulkUnlockMode = enabled;
+        if (this.domBulkActions) this.domBulkActions.classList.toggle('hidden', !enabled);
+        if (this.domBulkToggle) this.domBulkToggle.classList.toggle('hidden', enabled);
+        this.renderLibrary();
+    },
+
+    // 🎯 新增：批次解鎖。只標記為已解鎖，不動 totalCount/todayCount，
+    // 因為這是「標記我本來就已經會了」的快速動作，不代表剛才有練習一次。
+    bulkUnlock(ids) {
+        let count = 0;
+        ids.forEach(id => {
+            const trick = this.tricks.find(t => t.id === id);
+            if (trick && !trick.isUnlocked) {
+                trick.isUnlocked = true;
+                count++;
+            }
+        });
+        return count;
+    },
+
     renderLibrary() {
         if (!this.domList) return;
 
@@ -294,15 +355,17 @@ export const TrickLibrary = {
         const selectedCat = this.domFilterCategory ? this.domFilterCategory.value : "";
         const selectedSub = this.domFilterSubcategory ? this.domFilterSubcategory.value : "";
 
-        // 🎯 核心修改：過濾出符合條件的招式
+        // 🎯 核心修改：過濾出符合條件的招式；一鍵解鎖模式下只顯示尚未解鎖的招式
         const filteredTricks = this.tricks.filter(trick => {
             const matchCat = !selectedCat || trick.category === selectedCat;
             const matchSub = !selectedSub || trick.subcategory === selectedSub;
-            return matchCat && matchSub;
+            const matchLock = !this.bulkUnlockMode || !trick.isUnlocked;
+            return matchCat && matchSub && matchLock;
         });
 
         if (filteredTricks.length === 0) {
-            this.domList.innerHTML = `<div style="text-align:center; color:#95a5a6; padding: 20px;">找不到符合此分類的招式</div>`;
+            const emptyMsg = this.bulkUnlockMode ? '目前沒有可解鎖的招式了' : '找不到符合此分類的招式';
+            this.domList.innerHTML = `<div style="text-align:center; color:#95a5a6; padding: 20px;">${emptyMsg}</div>`;
             return;
         }
 
@@ -317,7 +380,10 @@ export const TrickLibrary = {
                         ${trick.name} ${trick.isUnlocked ? '' : '🔒'} 
                     </strong>
                 </div>
-                <span class="lib-count-info">總計: ${trick.totalCount} 次</span>
+                ${this.bulkUnlockMode
+                    ? `<input type="checkbox" class="bulk-unlock-checkbox" data-id="${trick.id}">`
+                    : `<span class="lib-count-info">總計: ${trick.totalCount} 次</span>`
+                }
             </div>
         `).join('');
     },
@@ -352,6 +418,26 @@ export const TrickLibrary = {
 
         trick.todayCount = nextToday;
         trick.totalCount = nextTotal;
+    },
+
+    // 🎯 新增：直接輸入「今日」次數。用差值 (delta) 同步調整 totalCount，
+    // 邏輯上等同於連續按了好幾次 +/-，藉此維持 todayCount 與 totalCount 的關係一致。
+    setTodayCount(id, newValue) {
+        const trick = this.tricks.find(t => t.id === id);
+        if (!trick) return;
+
+        let val = parseInt(newValue, 10);
+        if (isNaN(val) || val < 0) val = 0;
+
+        let delta = val - trick.todayCount;
+        // 若這個差值會讓 totalCount 變負數（理論上不該發生，防呆用），就把差值限制住
+        if (trick.totalCount + delta < 0) {
+            delta = -trick.totalCount;
+            val = trick.todayCount + delta;
+        }
+
+        trick.todayCount = val;
+        trick.totalCount += delta;
     },
 
     unlockTrick(id) {

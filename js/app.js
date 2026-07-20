@@ -1,6 +1,7 @@
 // js/app.js
 import { AuthSystem } from "./auth.js";
 import { TrickLibrary } from "./library.js";
+import { VersionInfo } from "./version.js";
 
 export const AppController = {
     currentStableTrick: null,
@@ -13,11 +14,14 @@ export const AppController = {
         TrickLibrary.init();
         // 啟動登入管理系統
         AuthSystem.init(); 
+        // 🎯 新增：初始化版本資訊顯示
+        VersionInfo.init();
         
         // 確保綁定事件
         this.bindCounterEvents();
         this.bindActionEvents();
         this.bindSelectEvents();
+        this.bindTodayInputEvents();
 
         // 🎯 新增：使用者關閉分頁或切換到背景前，把還在 debounce 等待中的次數盡量送出，
         // 避免最後幾下 +1 因為還沒到 800ms 就被使用者關掉頁面而遺失。
@@ -40,6 +44,19 @@ export const AppController = {
         this.refreshChallengeSelect();
         this.nextStableTrick();
         this.nextChallengeTrick();
+    },
+
+    // 🎯 新增：一鍵解鎖完成後呼叫。若目前顯示的挑戰招式剛好被解鎖了，換一個新的挑戰招式；
+    // 若原本沒有任何穩固招式可顯示，現在有了，補抽一個。
+    onBulkUnlockDone() {
+        if (this.currentChallengeTrick && this.currentChallengeTrick.isUnlocked) {
+            this.nextChallengeTrick();
+        }
+        if (!this.currentStableTrick) {
+            this.nextStableTrick();
+        } else {
+            this.renderStableCard();
+        }
     },
     
     refreshStableSelect() {
@@ -83,7 +100,11 @@ export const AppController = {
         if (!this.currentStableTrick) {
             if (nameEl) nameEl.innerText = "暫無熟練招式 (請先從挑戰中解鎖)";
             if (targetEl) targetEl.innerText = "-";
-            if (todayEl) todayEl.innerText = "-";
+            if (todayEl) {
+                todayEl.value = '';
+                todayEl.placeholder = '-';
+                todayEl.disabled = true;
+            }
             return;
         }
         
@@ -92,7 +113,13 @@ export const AppController = {
         
         if (nameEl) nameEl.innerText = TrickLibrary.formatTrickLabel(t);
         if (targetEl) targetEl.innerText = target;
-        if (todayEl) todayEl.innerText = t.todayCount;
+        if (todayEl) {
+            todayEl.disabled = false;
+            // 使用者正在輸入時（focus 中）不要被外部渲染打斷游標位置與輸入內容
+            if (document.activeElement !== todayEl) {
+                todayEl.value = t.todayCount;
+            }
+        }
     },
 
     renderChallengeCard() {
@@ -157,6 +184,28 @@ export const AppController = {
             const selectEl = document.getElementById('select-challenge-trick');
             if (selectEl) selectEl.value = randomTrick.id;
         }
+    },
+
+    // 🎯 新增：「今日」次數改成 input 之後，讓使用者可以直接輸入數字，
+    // 不用只能一直按 +/-。change 事件在使用者按 Enter 或離開輸入框時觸發。
+    bindTodayInputEvents() {
+        const input = document.querySelector('#stable-trick-card .today-count');
+        if (!input) return;
+
+        const commit = () => {
+            if (!this.currentStableTrick) return;
+            TrickLibrary.setTodayCount(this.currentStableTrick.id, input.value);
+            this.renderStableCard();
+
+            if (AuthSystem.currentUser) {
+                TrickLibrary.scheduleSave(AuthSystem.currentUser);
+            }
+        };
+
+        input.addEventListener('change', commit);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') input.blur(); // blur 會觸發 change
+        });
     },
 
     bindCounterEvents() {
@@ -230,9 +279,11 @@ export const AppController = {
         const selectStable = document.getElementById('select-stable-trick');
         const selectChallenge = document.getElementById('select-challenge-trick');
 
+        // 🎯 修正：招式 ID 已改為 "1_1_1" 這種字串格式，原本用 parseInt() 轉換
+        // 會把 "1_1_1" 誤解析成數字 1，導致選單選到錯的招式。改成直接用字串比對。
         if (selectStable) {
             selectStable.onchange = (e) => {
-                const selectedId = parseInt(e.target.value, 10);
+                const selectedId = e.target.value;
                 if (!selectedId) return;
                 const found = TrickLibrary.tricks.find(t => t.id === selectedId);
                 if (found) {
@@ -244,7 +295,7 @@ export const AppController = {
 
         if (selectChallenge) {
             selectChallenge.onchange = (e) => {
-                const selectedId = parseInt(e.target.value, 10);
+                const selectedId = e.target.value;
                 if (!selectedId) return;
                 const found = TrickLibrary.tricks.find(t => t.id === selectedId);
                 if (found) {

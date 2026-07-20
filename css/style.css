@@ -67,6 +67,26 @@ body {
     bottom: 8px;
 }
 
+/* 🎯 新增：版本號徽章，固定於頁首左下角，點擊可查看更新紀錄 */
+.version-badge {
+    position: absolute;
+    left: 16px;
+    bottom: 8px;
+    background-color: rgba(255, 255, 255, 0.18);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 999px;
+    padding: 2px 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    line-height: 1.6;
+}
+
+.version-badge:active {
+    background-color: rgba(255, 255, 255, 0.32);
+}
+
 /* ==========================================================================
    3. 主要佈局與卡片設計 (Layout & Responsive Cards)
    ========================================================================== */
@@ -212,6 +232,32 @@ body {
     color: var(--text-main);
 }
 
+/* 🎯 新增：「今日」次數改為可輸入欄位後的樣式，視覺上盡量貼近原本的純文字顯示 */
+input.today-count {
+    width: 48px;
+    border: none;
+    background: transparent;
+    outline: none;
+    padding: 0;
+    text-align: left;
+    -moz-appearance: textfield;
+}
+
+input.today-count:focus {
+    color: var(--primary-color);
+}
+
+input.today-count:disabled {
+    color: var(--text-muted);
+}
+
+/* 移除 Chrome/Safari 數字輸入框的上下箭頭 */
+input.today-count::-webkit-outer-spin-button,
+input.today-count::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
 .button-group {
     display: flex;
     gap: 8px;
@@ -321,6 +367,40 @@ body {
     margin-bottom: 12px;
 }
 
+/* 🎯 新增：一鍵解鎖模式樣式 */
+.bulk-unlock-bar {
+    margin-bottom: 10px;
+}
+
+.bulk-unlock-actions {
+    background-color: #fff7ed;
+    border: 1px solid #fed7aa;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.bulk-unlock-tip {
+    display: block;
+    font-size: 0.8rem;
+    color: #9a3412;
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+.bulk-unlock-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.bulk-unlock-checkbox {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    accent-color: var(--action-success);
+    cursor: pointer;
+}
+
 .library-list { 
     overflow-y: auto; 
     flex: 1; 
@@ -385,6 +465,50 @@ body {
     flex-shrink: 0;
 }
 
+/* 🎯 新增：更新紀錄彈窗樣式 */
+.version-entry {
+    padding: 12px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.version-entry:last-child {
+    border-bottom: none;
+}
+
+.version-entry-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.version-tag {
+    background-color: var(--primary-color);
+    color: #ffffff;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+}
+
+.version-date {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+.version-changes {
+    list-style: disc;
+    padding-left: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.version-changes li {
+    font-size: 0.88rem;
+    color: var(--text-main);
+}
+
 /* ==========================================================================
    7. 底部固定導覽列 (Bottom Navigation Bar)
    ========================================================================== */
@@ -420,4 +544,84 @@ body {
 .bottom-nav .btn-nav.accent { 
     background-color: #ffffff; 
     color: #14b8a6; 
+}
+
+/* ==========================================================================
+   8. 響應式設計 (RWD) — 平板 / 電腦版面
+   本檔案以手機版面為基礎 (mobile-first)，以下針對較寬螢幕做加強，
+   不影響手機版原本的排版與操作方式。
+   ========================================================================== */
+
+/* 🎯 平板以上 (>= 768px)：加寬版面，兩張卡片並排顯示，彈窗變寬更好閱讀 */
+@media (min-width: 768px) {
+    .app-content {
+        max-width: 900px;
+        padding: 24px;
+        /* 今日穩固招式／新招式挑戰 並排顯示，不用再一直往下滑 */
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        align-items: start;
+    }
+
+    .card-section {
+        margin-bottom: 0;
+    }
+
+    /* 卡片內部：資訊在左、操作在右，橫向利用寬螢幕空間 */
+    .trick-card {
+        min-height: 220px;
+    }
+
+    .app-header h1 {
+        font-size: 2.2rem;
+    }
+
+    /* 桌面上底部導覽列改成置中的浮動工具列，不用整條貼滿螢幕邊緣 */
+    .bottom-nav {
+        max-width: 500px;
+        margin: 0 auto;
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+        border-radius: 16px 16px 0 0;
+    }
+
+    .modal-content {
+        max-width: 480px;
+    }
+
+    #modal-library .modal-content {
+        max-width: 620px;
+    }
+}
+
+/* 🎯 桌機大螢幕 (>= 1024px)：再放寬一些，彈窗、字級都再放大一點，閱讀更舒適 */
+@media (min-width: 1024px) {
+    .app-content {
+        max-width: 1080px;
+    }
+
+    body {
+        font-size: 16px;
+    }
+
+    .trick-name {
+        font-size: 1.4rem;
+    }
+
+    .app-header {
+        height: 100px;
+    }
+}
+
+/* 🎯 極小螢幕 (<= 360px)：避免計數器區域被擠壓換行 */
+@media (max-width: 360px) {
+    .counter-display {
+        gap: 10px;
+    }
+
+    .btn-count {
+        width: 40px;
+    }
 }
