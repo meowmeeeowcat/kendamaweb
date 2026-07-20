@@ -5,14 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
     <title>劍玉招式練習</title>
     <link rel="stylesheet" href="css/style.css"/>
+    <!-- 🎯 新增：網站圖示（瀏覽器分頁、加入主畫面的圖示）統一使用招式庫照片 -->
+    <link rel="icon" type="image/png" href="images/library-icon.png"/>
+    <link rel="apple-touch-icon" href="images/library-icon.png"/>
 </head>
 <body>
 
     <header class="app-header">
-        <button id="btn-login-trigger" class="header-account-btn">帳號登入</button>
         <h1>劍玉招式練習</h1>
         <button id="btn-version" class="version-badge" title="查看更新紀錄">v-</button>
-        <div id="user-status" class="user-status">未登入 (功能皆可使用，進度將不儲存)</div>
+        <!-- 🎯 修改：選手資訊與切換帳號按鈕改成同一排，按鈕放在選手文字右側 -->
+        <div class="header-account-row">
+            <div id="user-status" class="user-status">未登入 (功能皆可使用，進度將不儲存)</div>
+            <button id="btn-login-trigger" class="header-account-btn">帳號登入</button>
+        </div>
     </header>
 
     <main class="app-content">
@@ -83,10 +89,10 @@
             <span class="library-badge">
                 <svg viewBox="0 0 150 150" class="library-badge-ring" aria-hidden="true">
                     <defs>
-                        <path id="libraryRingPath" d="M 75,75 m -62,0 a 62,62 0 1,1 124,0 a 62,62 0 1,1 -124,0" />
+                        <path id="libraryRingPath" d="M 31.16,31.16 A 62,62 0 0,1 118.84,31.16" />
                     </defs>
                     <text class="library-ring-text">
-                        <textPath href="#libraryRingPath" startOffset="50%" text-anchor="middle">完 整 招 式 庫</textPath>
+                        <textPath href="#libraryRingPath" startOffset="50%" text-anchor="middle">完整招式庫</textPath>
                     </text>
                 </svg>
                 <span class="library-icon-wrap">
