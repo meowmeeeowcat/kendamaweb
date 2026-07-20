@@ -726,8 +726,8 @@ input.today-count::-webkit-inner-spin-button {
 
     /* 🎯 以下僅套用於電腦版：完整招式庫改為圓形按鈕，懸浮在畫面上，文字置於上方 90 度弧形範圍內 */
     .btn-library-main {
-        width: 130px;
-        height: 130px;
+        width: 144px;
+        height: 144px;
         border-radius: 50%;          /* 🎯 按鈕外框變成一個圓 */
         background-color: #ffffff;
         border: 3px solid #14b8a6;
@@ -735,11 +735,11 @@ input.today-count::-webkit-inner-spin-button {
         padding: 0;
         gap: 0;
         position: relative;
-        transform: translateY(-34px); /* 🎯 讓按鈕懸浮在導覽列上方 */
+        transform: translateY(-38px); /* 🎯 讓按鈕懸浮在導覽列上方（按鈕放大後同步調整浮出高度） */
     }
 
     .btn-library-main:active {
-        transform: translateY(-34px) scale(0.97);
+        transform: translateY(-38px) scale(0.97);
     }
 
     .btn-library-main:active .library-badge {
@@ -772,14 +772,14 @@ input.today-count::-webkit-inner-spin-button {
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        width: 84px;
-        height: 84px;
+        width: 94px;   /* 🎯 白圓放大一點 */
+        height: 94px;
         border: 3px solid #ffffff;
         box-shadow: 0 3px 8px rgba(0,0,0,0.2);
     }
 
     .library-icon-wrap.no-image::before {
-        font-size: 2.2rem;
+        font-size: 2.4rem;
     }
 
     .library-icon-label {

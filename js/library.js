@@ -156,59 +156,103 @@ export const TrickLibrary = {
         });
     },
 
-    // 🎯 修正：改為回傳 needsResave (boolean)，讓呼叫端知道「是否真的需要」重新上傳。
-    // 舊版每次登入都會無條件呼叫 saveUserProgress()，一旦這裡讀取失敗（例如網路問題），
-    // 就會把本地重置後的「全部歸零」資料寫回 Firebase，等於把使用者雲端進度整個清空。
-    // 現在：讀取失敗時回傳 false，呼叫端就不會誤觸發覆蓋寫入。
+    // 🎯 新增：自動偵測「舊版純數字招式 ID」格式的雲端資料（例如 "1","2","3"...），
+    // 並依照原本的數字順序，對應搬遷到目前的新版 ID（例如 "1_1_1"）。
+    // 招式 ID 從純數字改成「大分類_小分類_序號」格式後，陣列本身的排列順序並沒有變動，
+    // 只有 id 欄位的寫法改變，所以「舊的第 N 個數字」＝「目前 defaultTricks 陣列中的第 N 筆」。
+    // 這是一個通用的防範措施：未來不管哪個帳號、只要還留著舊格式資料，登入時都會自動修好，
+    // 不需要每次都手動處理。
+    // 回傳 { tricks, migrated }：migrated 為 true 代表有搬過資料，呼叫端應該立刻回存新格式。
+    migrateLegacyTricksIfNeeded(cloudTricks) {
+        if (!cloudTricks) return { tricks: {}, migrated: false };
+
+        const entries = Array.isArray(cloudTricks)
+            ? cloudTricks.map((t, idx) => [String(t && t.id !== undefined ? t.id : idx + 1), t])
+            : Object.entries(cloudTricks);
+
+        if (entries.length === 0) return { tricks: {}, migrated: false };
+
+        // 目前新版 ID 一定含有底線（例如 "1_1_1"）；只有當「全部」key 都是純數字時，
+        // 才判斷這是舊版資料，避免誤判正常的新版資料。
+        const looksLegacy = entries.every(([key]) => /^\d+$/.test(key));
+        if (!looksLegacy) {
+            return { tricks: Array.isArray(cloudTricks) ? Object.fromEntries(entries) : cloudTricks, migrated: false };
+        }
+
+        console.warn(`⚠️ 偵測到舊版純數字招式 ID 資料，自動依原本順序搬遷至新版 ID...`);
+
+        const sortedByOldNumber = entries
+            .map(([key, val]) => [parseInt(key, 10), val])
+            .filter(([num]) => !isNaN(num))
+            .sort((a, b) => a[0] - b[0]);
+
+        const migratedTricks = {};
+        sortedByOldNumber.forEach(([, val], idx) => {
+            const targetTrick = this.defaultTricks[idx];
+            if (targetTrick && val) {
+                migratedTricks[targetTrick.id] = {
+                    totalCount: typeof val.totalCount === 'number' ? val.totalCount : 0,
+                    isUnlocked: val.isUnlocked !== undefined ? val.isUnlocked : targetTrick.isUnlocked
+                };
+            }
+        });
+
+        return { tricks: migratedTricks, migrated: true };
+    },
+
+    // 🎯 修正：儲存邏輯拆成「全域資料」與「每日資料」兩種文件：
+    // - users/{username}：只放「跟預設狀態不同」的招式（已解鎖、或累積次數 > 0），
+    //   也就是解鎖狀態與累積次數這種「不分哪一天、永久累積」的全域資料。
+    // - users/{username}/days/{yyyy-mm-dd}：每個有登入練習過的日期各自一份文件，
+    //   只記錄「當天」有練習到的招式與次數，不會混進全域的累積次數／解鎖狀態。
+    // 這樣一來，全域文件不會每次都寫入全部 254 個招式（大幅減少資料量），
+    // 而且往後想看某一天練了什麼，直接讀那一天的獨立文件即可，不用整份撈出來過濾。
+    //
+    // 回傳 needsResave (boolean)，讓呼叫端知道「是否真的需要」重新上傳。
+    // 讀取失敗時回傳 false，呼叫端就不會誤觸發覆蓋寫入，避免把本地重置後的空白資料蓋掉雲端進度。
     async loadUserProgress(username) {
         if (!username) { this.resetLocalTricks(); return false; }
         try {
-            const docRef = doc(db, "users", username);
-            const docSnap = await getDoc(docRef);
+            const todayDate = this.getTodayDateString();
+            const userDocRef = doc(db, "users", username);
+            const dayDocRef = doc(db, "users", username, "days", todayDate);
 
-            if (docSnap.exists()) {
-                const cloudData = docSnap.data();
-                const savedDate = cloudData.lastSavedDate || "";
-                const isNewDay = (savedDate !== this.getTodayDateString());
-                const cloudTricks = cloudData.tricks;
+            const [userSnap, daySnap] = await Promise.all([getDoc(userDocRef), getDoc(dayDocRef)]);
 
-                this.historyData = cloudData.history || {};
+            if (userSnap.exists()) {
+                const cloudData = userSnap.data();
+
+                // 自動偵測並搬遷舊版純數字 ID 資料（找回貓貓等舊帳號的解鎖與累積次數紀錄）
+                const { tricks: cloudTricks, migrated } = this.migrateLegacyTricksIfNeeded(cloudData.tricks);
+
+                const todayLogs = (daySnap.exists() && daySnap.data().logs) ? daySnap.data().logs : {};
+                this.historyData = { [todayDate]: todayLogs };
 
                 this.tricks = this.defaultTricks.map(dt => {
-                    let ct = null;
-                    if (cloudTricks) {
-                        if (Array.isArray(cloudTricks)) {
-                            ct = cloudTricks.find(t => t && t.id === dt.id);
-                        } else {
-                            ct = cloudTricks[dt.id];
-                        }
-                    }
-
-                    if (ct) {
-                        return {
-                            ...dt,
-                            totalCount: typeof ct.totalCount === 'number' ? ct.totalCount : 0,
-                            todayCount: isNewDay ? 0 : (typeof ct.todayCount === 'number' ? ct.todayCount : 0),
-                            isUnlocked: ct.isUnlocked !== undefined ? ct.isUnlocked : dt.isUnlocked
-                        };
-                    }
-                    return { ...dt };
+                    const ct = cloudTricks[dt.id];
+                    const todayEntry = todayLogs[dt.id];
+                    return {
+                        ...dt,
+                        totalCount: ct && typeof ct.totalCount === 'number' ? ct.totalCount : 0,
+                        isUnlocked: ct && ct.isUnlocked !== undefined ? ct.isUnlocked : dt.isUnlocked,
+                        todayCount: todayEntry && typeof todayEntry.count === 'number' ? todayEntry.count : 0
+                    };
                 });
 
                 if (cloudData.customTricks && Array.isArray(cloudData.customTricks)) {
                     cloudData.customTricks.forEach(ct => {
+                        const todayEntry = todayLogs[ct.id];
                         this.tricks.push({
                             ...ct,
-                            todayCount: isNewDay ? 0 : (ct.todayCount || 0)
+                            todayCount: todayEntry && typeof todayEntry.count === 'number' ? todayEntry.count : 0
                         });
                     });
                 }
 
-                // 只有「雲端招式數量少於目前招式庫」(舊帳號、招式庫更新過) 才需要重新上傳升級
-                const cloudCount = cloudTricks
-                    ? (Array.isArray(cloudTricks) ? cloudTricks.length : Object.keys(cloudTricks).length)
-                    : 0;
-                return cloudCount < this.defaultTricks.length;
+                // 🎯 全域資料現在本來就只會存「有變更」的招式（刻意精簡），
+                // 所以不能再用「雲端招式數量 < 招式庫總數」來判斷要不要重新上傳（正常情況下也一定會比較少）。
+                // 只有「剛搬遷完舊格式資料」才需要立刻回存新格式，其餘情況維持原樣即可。
+                return migrated;
             } else {
                 this.resetLocalTricks();
                 return true; // 全新帳號，雲端還沒有資料，需要建立初始文件
@@ -221,47 +265,44 @@ export const TrickLibrary = {
     },
 
     async saveUserProgress(username) {
-        if (!username) return; 
+        if (!username) return;
         try {
-            const docRef = doc(db, "users", username);
-            const tricksMap = {};
-            const customTricksArray = [];
-            
             const todayDate = this.getTodayDateString();
-            const todayLogs = {};
+            const userDocRef = doc(db, "users", username);
+            const dayDocRef = doc(db, "users", username, "days", todayDate);
+
+            const tricksMap = {};       // 全域：只記錄「已解鎖」或「累積次數 > 0」的招式
+            const customTricksArray = [];
+            const todayLogs = {};       // 每日：只記錄「今天有練習」的招式
             let hasTodayData = false;
 
             this.tricks.forEach(t => {
+                if (t.isCustom) {
+                    customTricksArray.push(t);
+                } else if (t.isUnlocked || t.totalCount > 0) {
+                    tricksMap[t.id] = {
+                        totalCount: t.totalCount,
+                        isUnlocked: t.isUnlocked
+                    };
+                }
+
                 if (t.todayCount > 0) {
                     todayLogs[t.id] = { name: t.name, count: t.todayCount };
                     hasTodayData = true;
                 }
-
-                if (t.isCustom) {
-                    customTricksArray.push(t);
-                } else {
-                    tricksMap[t.id] = {
-                        id: t.id,
-                        name: t.name,
-                        totalCount: t.totalCount,
-                        todayCount: t.todayCount,
-                        isUnlocked: t.isUnlocked
-                    };
-                }
             });
 
-            const uploadPayload = {
+            // 全域文件每次都是依照目前完整的本地狀態重新產生，本身就是完整快照，
+            // 直接覆寫可以避免舊版「已改回預設值」的招式一直殘留在雲端。
+            await setDoc(userDocRef, {
                 tricks: tricksMap,
-                customTricks: customTricksArray,
-                lastSavedDate: todayDate
-            };
+                customTricks: customTricksArray
+            });
 
             if (hasTodayData) {
-                uploadPayload.history = { [todayDate]: todayLogs };
+                await setDoc(dayDocRef, { logs: todayLogs });
                 this.historyData[todayDate] = todayLogs;
             }
-
-            await setDoc(docRef, uploadPayload, { merge: true });
         } catch (e) {
             console.error("同步至 Firebase 失敗:", e);
         }
