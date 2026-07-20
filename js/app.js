@@ -18,6 +18,17 @@ export const AppController = {
         this.bindCounterEvents();
         this.bindActionEvents();
         this.bindSelectEvents();
+
+        // 🎯 新增：使用者關閉分頁或切換到背景前，把還在 debounce 等待中的次數盡量送出，
+        // 避免最後幾下 +1 因為還沒到 800ms 就被使用者關掉頁面而遺失。
+        window.addEventListener('beforeunload', () => {
+            if (AuthSystem.currentUser) TrickLibrary.flushSave();
+        });
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden' && AuthSystem.currentUser) {
+                TrickLibrary.flushSave();
+            }
+        });
         
         window.AppController = this;
     },
@@ -79,7 +90,7 @@ export const AppController = {
         const t = this.currentStableTrick;
         const target = TrickLibrary.getTargetCount(t.totalCount);
         
-        if (nameEl) nameEl.innerText = `${t.name} (${t.category || ''}/${t.subcategory || ''})`;
+        if (nameEl) nameEl.innerText = TrickLibrary.formatTrickLabel(t);
         if (targetEl) targetEl.innerText = target;
         if (todayEl) todayEl.innerText = t.todayCount;
     },
@@ -95,7 +106,7 @@ export const AppController = {
             return;
         }
         const t = this.currentChallengeTrick;
-        nameEl.innerText = `${t.name} (${t.category || ''}/${t.subcategory || ''})`;
+        nameEl.innerText = TrickLibrary.formatTrickLabel(t);
     },
 
     nextStableTrick() {
@@ -150,15 +161,18 @@ export const AppController = {
 
     bindCounterEvents() {
         document.querySelectorAll('#stable-trick-card .btn-count').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
+            btn.addEventListener('click', (e) => {
                 if (!this.currentStableTrick) return;
                 const amount = parseInt(e.currentTarget.getAttribute('data-add'), 10);
                 
                 TrickLibrary.updateCount(this.currentStableTrick.id, amount);
                 this.renderStableCard();
                 
+                // 🎯 修正：原本每按一下 +1/-1 就立刻 await 一次 Firestore 寫入，
+                // 連點會塞爆網路請求，而且較舊的請求可能比較晚回來、覆蓋掉新的次數。
+                // 改成 debounce：停止點擊 800ms 後才真正上傳一次。
                 if (AuthSystem.currentUser) {
-                    await TrickLibrary.saveUserProgress(AuthSystem.currentUser);
+                    TrickLibrary.scheduleSave(AuthSystem.currentUser);
                 }
             });
         });
@@ -191,7 +205,13 @@ export const AppController = {
                 alert(`🏆 恭喜成功解鎖【${targetName}】！`);
                 
                 // 2. 同步至 Firebase（因為次數已經是 1，會精準觸發歷史紀錄上傳）
+                // 🎯 解鎖是重要事件，不用 debounce：取消還在等待中的計數存檔計時器，
+                // 直接用目前（已包含解鎖結果）的最新狀態存一次就好，避免重複寫入。
                 if (AuthSystem.currentUser) {
+                    if (TrickLibrary._saveTimer) {
+                        clearTimeout(TrickLibrary._saveTimer);
+                        TrickLibrary._saveTimer = null;
+                    }
                     await TrickLibrary.saveUserProgress(AuthSystem.currentUser);
                 }
 

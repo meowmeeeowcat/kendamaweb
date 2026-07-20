@@ -6,7 +6,32 @@ import { tricksData } from "./tricks-data.js";
 export const TrickLibrary = {
     defaultTricks: (typeof tricksData !== 'undefined' && tricksData) ? tricksData : [],
     tricks: [],
-    historyData: {}, 
+    historyData: {},
+    _saveTimer: null,
+    _pendingUser: null,
+
+    // 🎯 新增：debounce 儲存。原本每按一次 +1/-1 就立刻打一次 Firestore setDoc，
+    // 連續點擊會產生大量不必要的寫入，甚至可能因為網路延遲導致「較新的次數」
+    // 被「較舊但比較晚回來」的請求覆蓋掉（race condition）。
+    // 改成：短時間內的多次呼叫合併成一次，等使用者停止點擊 800ms 後才真正上傳。
+    scheduleSave(username, delay = 800) {
+        if (!username) return;
+        this._pendingUser = username;
+        if (this._saveTimer) clearTimeout(this._saveTimer);
+        this._saveTimer = setTimeout(() => {
+            this._saveTimer = null;
+            this.saveUserProgress(this._pendingUser);
+        }, delay);
+    },
+
+    // 立即把還沒送出的 debounce 儲存強制送出（例如切換帳號、關閉頁面前）
+    async flushSave() {
+        if (this._saveTimer) {
+            clearTimeout(this._saveTimer);
+            this._saveTimer = null;
+            if (this._pendingUser) await this.saveUserProgress(this._pendingUser);
+        }
+    },
 
     getTodayDateString() {
         const today = new Date();
@@ -23,8 +48,18 @@ export const TrickLibrary = {
         this.domFilterCategory = document.getElementById('filter-category');
         this.domFilterSubcategory = document.getElementById('filter-subcategory');
 
+        // 🎯 修正：今日統計彈窗原本是寫在 index.html 的獨立 <script> 內，
+        // 直接伸手進來讀 TrickLibrary 的內部資料，等於把資料邏輯拆成兩份、放在兩個地方維護。
+        // 統一搬進 library.js，讓 index.html 只負責畫面結構。
+        this.domStatsModal = document.getElementById('modal-stats');
+        this.domStatsTrigger = document.getElementById('btn-stats-trigger');
+        this.domStatsClose = document.getElementById('btn-stats-close');
+        this.domStatsList = document.getElementById('stats-list');
+
         if (this.domTrigger) this.domTrigger.onclick = () => this.openModal();
         if (this.domClose) this.domClose.onclick = () => this.closeModal();
+        if (this.domStatsTrigger) this.domStatsTrigger.onclick = () => this.openStatsModal();
+        if (this.domStatsClose) this.domStatsClose.onclick = () => this.closeStatsModal();
 
         // 🎯 新增：綁定篩選選單切換事件
         if (this.domFilterCategory) {
@@ -89,8 +124,12 @@ export const TrickLibrary = {
         });
     },
 
+    // 🎯 修正：改為回傳 needsResave (boolean)，讓呼叫端知道「是否真的需要」重新上傳。
+    // 舊版每次登入都會無條件呼叫 saveUserProgress()，一旦這裡讀取失敗（例如網路問題），
+    // 就會把本地重置後的「全部歸零」資料寫回 Firebase，等於把使用者雲端進度整個清空。
+    // 現在：讀取失敗時回傳 false，呼叫端就不會誤觸發覆蓋寫入。
     async loadUserProgress(username) {
-        if (!username) { this.resetLocalTricks(); return; }
+        if (!username) { this.resetLocalTricks(); return false; }
         try {
             const docRef = doc(db, "users", username);
             const docSnap = await getDoc(docRef);
@@ -132,12 +171,20 @@ export const TrickLibrary = {
                         });
                     });
                 }
+
+                // 只有「雲端招式數量少於目前招式庫」(舊帳號、招式庫更新過) 才需要重新上傳升級
+                const cloudCount = cloudTricks
+                    ? (Array.isArray(cloudTricks) ? cloudTricks.length : Object.keys(cloudTricks).length)
+                    : 0;
+                return cloudCount < this.defaultTricks.length;
             } else {
                 this.resetLocalTricks();
+                return true; // 全新帳號，雲端還沒有資料，需要建立初始文件
             }
         } catch (e) {
             console.error("Firebase 載入失敗:", e);
             this.resetLocalTricks();
+            return false; // 讀取失敗，絕不能反過來把雲端資料蓋成空白
         }
     },
 
@@ -186,6 +233,44 @@ export const TrickLibrary = {
         } catch (e) {
             console.error("同步至 Firebase 失敗:", e);
         }
+    },
+
+    openStatsModal() {
+        if (!this.domStatsModal || !this.domStatsList) return;
+
+        const todayStr = this.getTodayDateString();
+        let htmlContent = "";
+        const todayLogs = this.historyData && this.historyData[todayStr];
+
+        if (todayLogs) {
+            Object.keys(todayLogs).forEach(id => {
+                const item = todayLogs[id];
+                htmlContent += `
+                    <div class="lib-item">
+                        <div><strong class="item-title">${item.name}</strong></div>
+                        <span class="lib-count-info highlighted">今日: <span>${item.count}</span> 次</span>
+                    </div>
+                `;
+            });
+        } else {
+            this.tricks.forEach(trick => {
+                if (trick.todayCount > 0) {
+                    htmlContent += `
+                        <div class="lib-item">
+                            <div><strong class="item-title">${trick.name}</strong></div>
+                            <span class="lib-count-info highlighted">今日: <span>${trick.todayCount}</span> 次</span>
+                        </div>
+                    `;
+                }
+            });
+        }
+
+        this.domStatsList.innerHTML = htmlContent || `<div class="empty-tip">今日暫無有效練習數據</div>`;
+        this.domStatsModal.classList.remove('hidden');
+    },
+
+    closeStatsModal() {
+        if (this.domStatsModal) this.domStatsModal.classList.add('hidden');
     },
 
     openModal() {
@@ -237,6 +322,15 @@ export const TrickLibrary = {
         `).join('');
     },
 
+    // 🎯 新增：統一產生「招式名稱 (大分類/小分類)」的顯示字串。
+    // 原本 app.js 直接寫 `${t.category || ''}/${t.subcategory || ''}`，
+    // 當兩者皆為空時會顯示成不好看的 "招式名稱 ()" 或 "招式名稱 (/)"。
+    formatTrickLabel(trick) {
+        if (!trick) return '';
+        const meta = [trick.category, trick.subcategory].filter(Boolean).join('/');
+        return meta ? `${trick.name} (${meta})` : trick.name;
+    },
+
     getTargetCount(totalCount) { 
         if (totalCount <= 10) return 3; 
         if (totalCount <= 50) return 5; 
@@ -246,10 +340,18 @@ export const TrickLibrary = {
 
     updateCount(id, amount) {
         const trick = this.tricks.find(t => t.id === id);
-        if (trick) {
-            if (trick.todayCount + amount >= 0) trick.todayCount += amount;
-            if (trick.totalCount + amount >= 0) trick.totalCount += amount;
-        }
+        if (!trick) return;
+
+        // 🎯 修正：原本 todayCount / totalCount 各自獨立判斷是否 >= 0，
+        // 當兩者數值不同時（例如跨日重置後 todayCount=0 但 totalCount>0）
+        // 按下「-」可能只讓其中一個扣減，導致兩者從此不同步。
+        // 改成同時檢查兩者，任一個會小於 0 就整組不執行。
+        const nextToday = trick.todayCount + amount;
+        const nextTotal = trick.totalCount + amount;
+        if (nextToday < 0 || nextTotal < 0) return;
+
+        trick.todayCount = nextToday;
+        trick.totalCount = nextTotal;
     },
 
     unlockTrick(id) {

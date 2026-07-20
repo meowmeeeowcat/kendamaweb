@@ -251,6 +251,19 @@ body {
     display: none; 
 }
 
+/* 🎯 新增：通用隱藏 class，供登出按鈕等非 modal 元件共用 */
+.hidden {
+    display: none !important;
+}
+
+/* 🎯 新增：登出按鈕樣式 */
+.btn-action.logout {
+    margin-top: 12px;
+    background-color: transparent;
+    color: #ef4444;
+    border: 1px solid #ef4444;
+}
+
 .modal-content { 
     background-color: #ffffff; 
     border-radius: 16px; 

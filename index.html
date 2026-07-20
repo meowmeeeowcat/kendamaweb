@@ -84,6 +84,7 @@
                 <button id="btn-login-submit" class="btn-action success">登入</button>
                 <button id="btn-login-close" class="btn-action secondary">取消</button>
             </div>
+            <button id="btn-logout" class="btn-action logout hidden">登出（回到訪客模式）</button>
         </div>
     </div>
 
@@ -129,57 +130,5 @@
         });
     </script>
 
-    <script type="module">
-        import { TrickLibrary } from "./js/library.js";
-        
-        window.openStatsModal = function() {
-            const modal = document.getElementById('modal-stats');
-            const list = document.getElementById('stats-list');
-            if (!modal || !list) return;
-            
-            const todayStr = TrickLibrary.getTodayDateString();
-            let htmlContent = "";
-            
-            if (TrickLibrary.historyData && TrickLibrary.historyData[todayStr]) {
-                const todayLogs = TrickLibrary.historyData[todayStr];
-                Object.keys(todayLogs).forEach(id => {
-                    const item = todayLogs[id];
-                    htmlContent += `
-                        <div class="lib-item">
-                            <div><strong class="item-title">${item.name}</strong></div>
-                            <span class="lib-count-info highlighted">今日: <span>${item.count}</span> 次</span>
-                        </div>
-                    `;
-                });
-            } else {
-                TrickLibrary.tricks.forEach(trick => {
-                    if (trick.todayCount > 0) {
-                        htmlContent += `
-                            <div class="lib-item">
-                                <div><strong class="item-title">${trick.name}</strong></div>
-                                <span class="lib-count-info highlighted">今日: <span>${trick.todayCount}</span> 次</span>
-                            </div>
-                        `;
-                    }
-                });
-            }
-            
-            list.innerHTML = htmlContent || `
-                <div class="empty-tip">今日暫無有效練習數據</div>
-            `;
-            
-            modal.classList.remove('hidden');
-        };
-
-        window.closeStatsModal = function() {
-            const modal = document.getElementById('modal-stats');
-            if (modal) modal.classList.add('hidden');
-        };
-
-        const btnStatsTrigger = document.getElementById('btn-stats-trigger');
-        const btnStatsClose = document.getElementById('btn-stats-close');
-        if (btnStatsTrigger) btnStatsTrigger.onclick = window.openStatsModal;
-        if (btnStatsClose) btnStatsClose.onclick = window.closeStatsModal;
-    </script>
 </body>
 </html>
