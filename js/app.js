@@ -44,6 +44,8 @@ export const AppController = {
         this.refreshChallengeSelect();
         this.nextStableTrick();
         this.nextChallengeTrick();
+        // 🎯 新增：登入/登出/切換帳號後，主畫面上的今日練習統計也要跟著刷新
+        TrickLibrary.renderStatsSection();
     },
 
     // 🎯 新增：一鍵解鎖完成後呼叫。若目前顯示的挑戰招式剛好被解鎖了，換一個新的挑戰招式；
@@ -196,6 +198,8 @@ export const AppController = {
             if (!this.currentStableTrick) return;
             TrickLibrary.setTodayCount(this.currentStableTrick.id, input.value);
             this.renderStableCard();
+            // 🎯 新增：手動輸入今日次數後，同步刷新主畫面上的今日練習統計
+            TrickLibrary.renderStatsSection();
 
             if (AuthSystem.currentUser) {
                 TrickLibrary.scheduleSave(AuthSystem.currentUser);
@@ -216,6 +220,8 @@ export const AppController = {
                 
                 TrickLibrary.updateCount(this.currentStableTrick.id, amount);
                 this.renderStableCard();
+                // 🎯 新增：+/- 次數後，同步刷新主畫面上的今日練習統計
+                TrickLibrary.renderStatsSection();
                 
                 // 🎯 修正：原本每按一下 +1/-1 就立刻 await 一次 Firestore 寫入，
                 // 連點會塞爆網路請求，而且較舊的請求可能比較晚回來、覆蓋掉新的次數。
@@ -271,6 +277,8 @@ export const AppController = {
                 // 🎯 修正核心：先將資料渲染至「今日穩固」卡片中顯示剛才+1的狀態，再抽取下一輪挑戰
                 this.renderStableCard(); 
                 this.nextChallengeTrick();
+                // 🎯 新增：挑戰成功後次數也變動了，同步刷新主畫面上的今日練習統計
+                TrickLibrary.renderStatsSection();
             };
         }
     },

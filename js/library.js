@@ -49,18 +49,12 @@ export const TrickLibrary = {
         this.domFilterCategory = document.getElementById('filter-category');
         this.domFilterSubcategory = document.getElementById('filter-subcategory');
 
-        // 🎯 修正：今日統計彈窗原本是寫在 index.html 的獨立 <script> 內，
-        // 直接伸手進來讀 TrickLibrary 的內部資料，等於把資料邏輯拆成兩份、放在兩個地方維護。
-        // 統一搬進 library.js，讓 index.html 只負責畫面結構。
-        this.domStatsModal = document.getElementById('modal-stats');
-        this.domStatsTrigger = document.getElementById('btn-stats-trigger');
-        this.domStatsClose = document.getElementById('btn-stats-close');
-        this.domStatsList = document.getElementById('stats-list');
+        // 🎯 修正：今日統計原本是彈窗，現在直接顯示於主畫面上，
+        // 不再需要開關彈窗，只需要抓到主畫面上的清單容器並隨時重新渲染即可。
+        this.domStatsList = document.getElementById('stats-section-list');
 
         if (this.domTrigger) this.domTrigger.onclick = () => this.openModal();
         if (this.domClose) this.domClose.onclick = () => this.closeModal();
-        if (this.domStatsTrigger) this.domStatsTrigger.onclick = () => this.openStatsModal();
-        if (this.domStatsClose) this.domStatsClose.onclick = () => this.closeStatsModal();
 
         // 🎯 新增：綁定篩選選單切換事件
         if (this.domFilterCategory) {
@@ -273,8 +267,11 @@ export const TrickLibrary = {
         }
     },
 
-    openStatsModal() {
-        if (!this.domStatsModal || !this.domStatsList) return;
+    // 🎯 修正：原本的 openStatsModal 改名為 renderStatsSection，
+    // 直接把內容畫進主畫面上的統計區塊，而不是開啟彈窗。
+    // 只要任何練習次數有變動（+/-、直接輸入、挑戰成功、切換帳號等），呼叫這個方法即可即時更新。
+    renderStatsSection() {
+        if (!this.domStatsList) return;
 
         const todayStr = this.getTodayDateString();
         let htmlContent = "";
@@ -304,11 +301,6 @@ export const TrickLibrary = {
         }
 
         this.domStatsList.innerHTML = htmlContent || `<div class="empty-tip">今日暫無有效練習數據</div>`;
-        this.domStatsModal.classList.remove('hidden');
-    },
-
-    closeStatsModal() {
-        if (this.domStatsModal) this.domStatsModal.classList.add('hidden');
     },
 
     openModal() {

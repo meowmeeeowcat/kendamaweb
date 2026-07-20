@@ -59,12 +59,32 @@ body {
 }
 
 .user-status { 
-    font-size: 0.85rem; 
+    font-size: 1.05rem;              /* 🎯 【修改】選手字樣調大 */
     color: rgba(255, 255, 255, 0.95); 
-    font-weight: 500;
+    font-weight: 700;
     position: absolute; /* 🎯 【修改】絕對定位，將選手資訊固定於 header 右下角 */
     right: 16px;
     bottom: 8px;
+}
+
+/* 🎯 新增：切換帳號／帳號登入按鈕，移至頁首右上角，位於「選手:」文字正上方 */
+.header-account-btn {
+    position: absolute;
+    right: 16px;
+    top: 10px;
+    background-color: #ffffff;
+    color: #14b8a6;
+    border: none;
+    border-radius: 999px;
+    padding: 6px 16px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.header-account-btn:active {
+    transform: scale(0.97);
 }
 
 /* 🎯 新增：版本號徽章，固定於頁首左下角，點擊可查看更新紀錄 */
@@ -113,6 +133,22 @@ body {
     color: #19b7da; /* 「新招式挑戰」改成藍色 */
     margin-bottom: 12px; 
     font-weight: 600;
+}
+
+/* 🎯 新增：今日練習統計改為直接顯示在主畫面上（不再是彈窗） */
+.card-section.stats-section h2 {
+    font-size: 1.4rem;
+    color: #14b8a6;
+    margin-bottom: 12px;
+    font-weight: 600;
+}
+
+.stats-inline-list {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    max-height: 260px;
+    margin: 0;
 }
 
 .trick-card { 
@@ -515,35 +551,68 @@ input.today-count::-webkit-inner-spin-button {
 .bottom-nav { 
     position: fixed; 
     bottom: 0; left: 0; right: 0; 
-    height: 68px; 
+    height: auto;
+    min-height: 84px;
     background-color: #14b8a6; 
     display: flex; 
-    justify-content: space-between; 
+    justify-content: center;  /* 🎯 只剩一顆按鈕，置中顯示 */
     align-items: center; 
-    padding: 0 12px; 
+    padding: 10px 12px; 
     box-shadow: 0 -4px 12px rgba(0,0,0,0.1); 
-    gap: 8px; 
     z-index: 999;
 }
 
-.bottom-nav .btn-nav { 
-    flex: 1; 
-    height: 44px; 
-    border: none; 
-    border-radius: 8px; 
-    background-color: #ffffff; 
-    color: #14b8a6; 
-    font-size: 0.82rem; 
-    font-weight: bold; 
-    cursor: pointer; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
+/* 🎯 【修改】完整招式庫按鈕：置中、放大，中央放置圓形照片 */
+.btn-library-main {
+    width: 100%;
+    max-width: 320px;
+    height: 64px;
+    border: none;
+    border-radius: 999px;
+    background-color: #ffffff;
+    color: #14b8a6;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 0 20px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.12);
 }
 
-.bottom-nav .btn-nav.accent { 
-    background-color: #ffffff; 
-    color: #14b8a6; 
+.btn-library-main:active {
+    transform: scale(0.98);
+}
+
+.library-icon-wrap {
+    width: 46px;
+    height: 46px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    overflow: hidden;
+    background-color: #e6fbf8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #14b8a6;
+}
+
+.library-icon-wrap.no-image::before {
+    content: "🪀";
+    font-size: 1.5rem;
+}
+
+.library-icon-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.library-icon-label {
+    font-size: 1.05rem;
+    font-weight: bold;
+    letter-spacing: 1px;
 }
 
 /* ==========================================================================
@@ -557,11 +626,31 @@ input.today-count::-webkit-inner-spin-button {
     .app-content {
         max-width: 900px;
         padding: 24px;
-        /* 今日穩固招式／新招式挑戰 並排顯示，不用再一直往下滑 */
+        /* 🎯 【修改】今日穩固招式／新招式挑戰 並排放在左側並上下堆疊，
+           今日練習統計則放在右側，方便同時瀏覽 */
         display: grid;
         grid-template-columns: 1fr 1fr;
+        grid-template-areas:
+            "stable  stats"
+            "challenge stats";
         gap: 24px;
         align-items: start;
+    }
+
+    .stats-section {
+        grid-area: stats;
+    }
+
+    .stable-section {
+        grid-area: stable;
+    }
+
+    .challenge-section {
+        grid-area: challenge;
+    }
+
+    .stats-inline-list {
+        max-height: none; /* 桌面版右側欄可以顯示完整清單，不特別限制高度 */
     }
 
     .card-section {

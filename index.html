@@ -9,12 +9,20 @@
 <body>
 
     <header class="app-header">
+        <button id="btn-login-trigger" class="header-account-btn">帳號登入</button>
         <h1>劍玉招式練習</h1>
         <button id="btn-version" class="version-badge" title="查看更新紀錄">v-</button>
         <div id="user-status" class="user-status">未登入 (功能皆可使用，進度將不儲存)</div>
     </header>
 
     <main class="app-content">
+        <section class="card-section stats-section">
+            <h2>今日練習統計</h2>
+            <div id="stats-section-list" class="library-list stats-inline-list">
+                <div class="empty-tip">今日暫無有效練習數據</div>
+            </div>
+        </section>
+
         <section class="card-section stable-section">
             <h2>今日穩固招式</h2>
             <div id="stable-trick-card" class="trick-card stable">
@@ -71,9 +79,13 @@
     </main>
 
     <nav class="bottom-nav">
-        <button id="btn-login-trigger" class="btn-nav accent">帳號登入</button>
-        <button id="btn-stats-trigger" class="btn-nav">今日統計</button>
-        <button id="btn-library-trigger" class="btn-nav">完整招式庫</button>
+        <button id="btn-library-trigger" class="btn-library-main" type="button">
+            <span class="library-icon-wrap">
+                <img src="images/library-icon.png" alt="" class="library-icon-img"
+                     onerror="this.style.display='none'; this.parentElement.classList.add('no-image');" />
+            </span>
+            <span class="library-icon-label">完整招式庫</span>
+        </button>
     </nav>
 
     <div id="modal-login" class="modal hidden">
@@ -86,15 +98,6 @@
                 <button id="btn-login-close" class="btn-action secondary">取消</button>
             </div>
             <button id="btn-logout" class="btn-action logout hidden">登出（回到訪客模式）</button>
-        </div>
-    </div>
-
-    <div id="modal-stats" class="modal hidden">
-        <div class="modal-content stats-content">
-            <h3>今日練習統計</h3>
-            <div id="stats-list" class="library-list">
-                </div>
-            <button id="btn-stats-close" class="btn-action secondary">返回首頁</button>
         </div>
     </div>
 
