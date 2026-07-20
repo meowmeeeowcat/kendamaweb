@@ -270,35 +270,25 @@ export const TrickLibrary = {
     // 🎯 修正：原本的 openStatsModal 改名為 renderStatsSection，
     // 直接把內容畫進主畫面上的統計區塊，而不是開啟彈窗。
     // 只要任何練習次數有變動（+/-、直接輸入、挑戰成功、切換帳號等），呼叫這個方法即可即時更新。
+    //
+    // 🎯 修正核心：原本會優先讀取 this.historyData[todayStr]（雲端「上一次存檔當下」的快照），
+    // 但使用者在兩次自動存檔（debounce 800ms）之間持續輸入次數時，historyData 並不會跟著更新，
+    // 導致畫面上顯示的統計卡在「最後一次存檔」的舊數字，看起來像是「只記錄到最高的數量」。
+    // 改成一律直接讀取 this.tricks 上即時的 todayCount，確保跟每一招的輸入完全同步。
     renderStatsSection() {
         if (!this.domStatsList) return;
 
-        const todayStr = this.getTodayDateString();
         let htmlContent = "";
-        const todayLogs = this.historyData && this.historyData[todayStr];
-
-        if (todayLogs) {
-            Object.keys(todayLogs).forEach(id => {
-                const item = todayLogs[id];
+        this.tricks.forEach(trick => {
+            if (trick.todayCount > 0) {
                 htmlContent += `
                     <div class="lib-item">
-                        <div><strong class="item-title">${item.name}</strong></div>
-                        <span class="lib-count-info highlighted">今日: <span>${item.count}</span> 次</span>
+                        <div><strong class="item-title">${trick.name}</strong></div>
+                        <span class="lib-count-info highlighted">今日: <span>${trick.todayCount}</span> 次</span>
                     </div>
                 `;
-            });
-        } else {
-            this.tricks.forEach(trick => {
-                if (trick.todayCount > 0) {
-                    htmlContent += `
-                        <div class="lib-item">
-                            <div><strong class="item-title">${trick.name}</strong></div>
-                            <span class="lib-count-info highlighted">今日: <span>${trick.todayCount}</span> 次</span>
-                        </div>
-                    `;
-                }
-            });
-        }
+            }
+        });
 
         this.domStatsList.innerHTML = htmlContent || `<div class="empty-tip">今日暫無有效練習數據</div>`;
     },

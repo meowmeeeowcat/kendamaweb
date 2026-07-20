@@ -79,10 +79,20 @@
     </main>
 
     <nav class="bottom-nav">
-        <button id="btn-library-trigger" class="btn-library-main" type="button">
-            <span class="library-icon-wrap">
-                <img src="images/library-icon.png" alt="" class="library-icon-img"
-                     onerror="this.style.display='none'; this.parentElement.classList.add('no-image');" />
+        <button id="btn-library-trigger" class="btn-library-main" type="button" aria-label="完整招式庫">
+            <span class="library-badge">
+                <svg viewBox="0 0 150 150" class="library-badge-ring" aria-hidden="true">
+                    <defs>
+                        <path id="libraryRingPath" d="M 75,75 m -62,0 a 62,62 0 1,1 124,0 a 62,62 0 1,1 -124,0" />
+                    </defs>
+                    <text class="library-ring-text">
+                        <textPath href="#libraryRingPath" startOffset="50%" text-anchor="middle">完 整 招 式 庫</textPath>
+                    </text>
+                </svg>
+                <span class="library-icon-wrap">
+                    <img src="images/library-icon.png" alt="完整招式庫" class="library-icon-img"
+                         onerror="this.style.display='none'; this.parentElement.classList.add('no-image');" />
+                </span>
             </span>
             <span class="library-icon-label">完整招式庫</span>
         </button>

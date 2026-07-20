@@ -26,7 +26,7 @@ body {
     color: var(--text-main); 
     font-size: 15px; 
     line-height: 1.5;
-    padding-bottom: 85px; 
+    padding-bottom: 85px;   /* 🎯 手機板維持原本留白 */
     -webkit-tap-highlight-color: transparent;
 }
 
@@ -43,7 +43,7 @@ body {
     justify-content: center;
     align-items: center;
     position: relative; /* 🎯 設為相對定位，以便子項目能精準定位到右下角 */
-    height: 90px; 
+    height: 90px;        /* 🎯 手機板維持原本高度 */
 }
 
 .app-header h1 { 
@@ -59,7 +59,7 @@ body {
 }
 
 .user-status { 
-    font-size: 1.05rem;              /* 🎯 【修改】選手字樣調大 */
+    font-size: 1.05rem;              /* 🎯 選手字樣調大 */
     color: rgba(255, 255, 255, 0.95); 
     font-weight: 700;
     position: absolute; /* 🎯 【修改】絕對定位，將選手資訊固定於 header 右下角 */
@@ -67,17 +67,17 @@ body {
     bottom: 8px;
 }
 
-/* 🎯 新增：切換帳號／帳號登入按鈕，移至頁首右上角，位於「選手:」文字正上方 */
+/* 🎯 切換帳號／帳號登入按鈕，手機板維持原本位置與較小尺寸，確保不會壓到標題或選手文字 */
 .header-account-btn {
     position: absolute;
     right: 16px;
-    top: 10px;
+    top: 8px;
     background-color: #ffffff;
     color: #14b8a6;
     border: none;
     border-radius: 999px;
-    padding: 6px 16px;
-    font-size: 0.82rem;
+    padding: 3px 10px;      /* 🎯 手機板縮小按鈕，避免壓到任何東西 */
+    font-size: 0.68rem;     /* 🎯 手機板縮小文字 */
     font-weight: 700;
     cursor: pointer;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
@@ -87,7 +87,7 @@ body {
     transform: scale(0.97);
 }
 
-/* 🎯 新增：版本號徽章，固定於頁首左下角，點擊可查看更新紀錄 */
+/* 🎯 版本號徽章，固定於頁首左下角，點擊可查看更新紀錄（手機板維持原本較小尺寸） */
 .version-badge {
     position: absolute;
     left: 16px;
@@ -551,22 +551,21 @@ input.today-count::-webkit-inner-spin-button {
 .bottom-nav { 
     position: fixed; 
     bottom: 0; left: 0; right: 0; 
-    height: auto;
-    min-height: 84px;
+    height: 68px;               /* 🎯 手機板維持原本高度 */
     background-color: #14b8a6; 
     display: flex; 
     justify-content: center;  /* 🎯 只剩一顆按鈕，置中顯示 */
     align-items: center; 
-    padding: 10px 12px; 
+    padding: 0 12px; 
     box-shadow: 0 -4px 12px rgba(0,0,0,0.1); 
     z-index: 999;
 }
 
-/* 🎯 【修改】完整招式庫按鈕：置中、放大，中央放置圓形照片 */
+/* 🎯 完整招式庫按鈕：手機板維持原本的長條按鈕樣式（圖示 + 文字並排） */
 .btn-library-main {
     width: 100%;
     max-width: 320px;
-    height: 64px;
+    height: 44px;
     border: none;
     border-radius: 999px;
     background-color: #ffffff;
@@ -575,8 +574,8 @@ input.today-count::-webkit-inner-spin-button {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
-    padding: 0 20px;
+    gap: 10px;
+    padding: 0 18px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.12);
 }
 
@@ -584,10 +583,35 @@ input.today-count::-webkit-inner-spin-button {
     transform: scale(0.98);
 }
 
-.library-icon-wrap {
-    width: 46px;
-    height: 46px;
+.btn-library-main:active .library-badge {
+    transform: scale(0.97);
+}
+
+/* 手機板：圓形照片縮小，跟文字並排顯示，環繞文字（SVG）先隱藏不用 */
+.library-badge {
+    position: relative;
+    width: 32px;
+    height: 32px;
     flex-shrink: 0;
+    transition: transform 0.1s;
+}
+
+.library-badge-ring {
+    display: none; /* 🎯 手機板不顯示環繞文字，維持原本簡單樣式 */
+}
+
+.library-ring-text,
+.library-ring-text textPath {
+    fill: #ffffff;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.library-icon-wrap {
+    position: static;
+    width: 100%;
+    height: 100%;
     border-radius: 50%;
     overflow: hidden;
     background-color: #e6fbf8;
@@ -599,7 +623,7 @@ input.today-count::-webkit-inner-spin-button {
 
 .library-icon-wrap.no-image::before {
     content: "🪀";
-    font-size: 1.5rem;
+    font-size: 1.1rem;
 }
 
 .library-icon-img {
@@ -610,7 +634,7 @@ input.today-count::-webkit-inner-spin-button {
 }
 
 .library-icon-label {
-    font-size: 1.05rem;
+    font-size: 1rem;
     font-weight: bold;
     letter-spacing: 1px;
 }
@@ -666,6 +690,22 @@ input.today-count::-webkit-inner-spin-button {
         font-size: 2.2rem;
     }
 
+    /* 🎯 以下三項僅套用於電腦版：頁首加高、切換帳號按鈕往下移、版本號放大 */
+    .app-header {
+        height: 108px;
+    }
+
+    .header-account-btn {
+        top: 30px;               /* 🎯 電腦版：切換帳號按鈕往下移一點 */
+        padding: 6px 16px;
+        font-size: 0.82rem;
+    }
+
+    .version-badge {
+        padding: 4px 14px;       /* 🎯 電腦版：版本號放大 */
+        font-size: 1rem;
+    }
+
     /* 桌面上底部導覽列改成置中的浮動工具列，不用整條貼滿螢幕邊緣 */
     .bottom-nav {
         max-width: 500px;
@@ -674,6 +714,52 @@ input.today-count::-webkit-inner-spin-button {
         right: auto;
         transform: translateX(-50%);
         border-radius: 16px 16px 0 0;
+        height: auto;
+        min-height: 148px;   /* 🎯 電腦版：容納放大後的圓形按鈕 */
+        padding: 14px 12px;
+    }
+
+    /* 🎯 以下僅套用於電腦版：完整招式庫改為大圓形照片置中，文字沿圓形邊緣環繞 */
+    .btn-library-main {
+        width: auto;
+        max-width: none;
+        height: auto;
+        background: transparent;
+        box-shadow: none;
+        padding: 0;
+        gap: 0;
+    }
+
+    .library-badge {
+        width: 130px;
+        height: 130px;
+    }
+
+    .library-badge-ring {
+        display: block;
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    .library-icon-wrap {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 88px;
+        height: 88px;
+        border: 3px solid #ffffff;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+    }
+
+    .library-icon-wrap.no-image::before {
+        font-size: 2.4rem;
+    }
+
+    .library-icon-label {
+        display: none; /* 電腦版文字改用圓環 SVG 顯示，不需要額外的文字標籤 */
     }
 
     .modal-content {
@@ -700,7 +786,7 @@ input.today-count::-webkit-inner-spin-button {
     }
 
     .app-header {
-        height: 100px;
+        height: 110px;
     }
 }
 

@@ -189,7 +189,10 @@ export const AppController = {
     },
 
     // 🎯 新增：「今日」次數改成 input 之後，讓使用者可以直接輸入數字，
-    // 不用只能一直按 +/-。change 事件在使用者按 Enter 或離開輸入框時觸發。
+    // 不用只能一直按 +/-。
+    // 🎯 修正：原本只綁 change（要等使用者按 Enter 或離開輸入框才觸發），
+    // 導致「今日練習統計」在使用者還在輸入時看不到最新次數，像是卡住一樣。
+    // 改成同時監聽 input 事件，使用者每打一個字，次數與下方統計就同步更新。
     bindTodayInputEvents() {
         const input = document.querySelector('#stable-trick-card .today-count');
         if (!input) return;
@@ -206,6 +209,7 @@ export const AppController = {
             }
         };
 
+        input.addEventListener('input', commit); // 即時同步，邊打字邊更新統計
         input.addEventListener('change', commit);
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') input.blur(); // blur 會觸發 change
