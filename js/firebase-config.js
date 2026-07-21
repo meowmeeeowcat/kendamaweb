@@ -1,7 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 
-// ⚠️ 請把你在【步驟 1-4】複製的專案金鑰貼在下面替換：
+// 請把你在【步驟 1-4】複製的專案金鑰貼在下面替換：
 const firebaseConfig = {
     apiKey: "AIzaSyA-BmERhNX0ea2UsbUEaa-Fo4AeCzs9MQI",
 

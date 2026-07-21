@@ -26,7 +26,7 @@ body {
     color: var(--text-main); 
     font-size: 15px; 
     line-height: 1.5;
-    padding-bottom: 85px;   /* 🎯 手機板維持原本留白 */
+    padding-bottom: 85px;   /* 手機板維持原本留白 */
     -webkit-tap-highlight-color: transparent;
 }
 
@@ -42,8 +42,8 @@ body {
     flex-direction: column; 
     justify-content: center;
     align-items: center;
-    position: relative; /* 🎯 設為相對定位，以便子項目能精準定位到右下角 */
-    height: 90px;        /* 🎯 手機板維持原本高度 */
+    position: relative; /* 設為相對定位，以便子項目能精準定位到右下角 */
+    height: 90px;        /* 手機板維持原本高度 */
 }
 
 .app-header h1 { 
@@ -58,7 +58,7 @@ body {
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); 
 }
 
-/* 🎯 修改：選手資訊與切換帳號按鈕的容器，兩者放在同一排，固定於 header 右下角 */
+/* 修改：選手資訊與切換帳號按鈕的容器，兩者放在同一排，固定於 header 右下角 */
 .header-account-row {
     position: absolute;
     right: 16px;
@@ -69,19 +69,19 @@ body {
 }
 
 .user-status { 
-    font-size: 1.05rem;              /* 🎯 選手字樣調大 */
+    font-size: 1.05rem;              /* 選手字樣調大 */
     color: rgba(255, 255, 255, 0.95); 
     font-weight: 700;
 }
 
-/* 🎯 切換帳號／帳號登入按鈕，放在選手文字右側、同一排，手機板維持較小尺寸避免壓到任何東西 */
+/* 切換帳號／帳號登入按鈕，放在選手文字右側、同一排，手機板維持較小尺寸避免壓到任何東西 */
 .header-account-btn {
     background-color: #ffffff;
     color: #14b8a6;
     border: none;
     border-radius: 999px;
-    padding: 3px 10px;      /* 🎯 手機板縮小按鈕，避免壓到任何東西 */
-    font-size: 0.68rem;     /* 🎯 手機板縮小文字 */
+    padding: 3px 10px;      /* 手機板縮小按鈕，避免壓到任何東西 */
+    font-size: 0.68rem;     /* 手機板縮小文字 */
     font-weight: 700;
     cursor: pointer;
     white-space: nowrap;
@@ -92,7 +92,7 @@ body {
     transform: scale(0.97);
 }
 
-/* 🎯 版本號徽章，固定於頁首左下角，點擊可查看更新紀錄（手機板維持原本較小尺寸） */
+/* 版本號徽章，固定於頁首左下角，點擊可查看更新紀錄（手機板維持原本較小尺寸） */
 .version-badge {
     position: absolute;
     left: 16px;
@@ -125,7 +125,7 @@ body {
     margin-bottom: 24px; 
 }
 
-/* 🎯 【修改】各自獨立設定區塊標題顏色 */
+/* 【修改】各自獨立設定區塊標題顏色 */
 .card-section.stable-section h2 { 
     font-size: 1.4rem; 
     color: #14b8a6; /* 「今日穩固招式」改成藍綠色 */
@@ -140,7 +140,7 @@ body {
     font-weight: 600;
 }
 
-/* 🎯 新增：今日練習統計改為直接顯示在主畫面上（不再是彈窗） */
+/* 新增：今日練習統計改為直接顯示在主畫面上（不再是彈窗） */
 .card-section.stats-section h2 {
     font-size: 1.4rem;
     color: #14b8a6;
@@ -188,6 +188,13 @@ body {
     display: flex;
     flex-direction: column;
     gap: 8px;
+}
+
+/* 大分類／小分類／招式 三層連動選單 */
+.trick-picker {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
 /* ==========================================================================
@@ -273,7 +280,7 @@ body {
     color: var(--text-main);
 }
 
-/* 🎯 新增：「今日」次數改為可輸入欄位後的樣式，視覺上盡量貼近原本的純文字顯示 */
+/* 新增：「今日」次數改為可輸入欄位後的樣式，視覺上盡量貼近原本的純文字顯示 */
 input.today-count {
     width: 48px;
     border: none;
@@ -338,12 +345,12 @@ input.today-count::-webkit-inner-spin-button {
     display: none; 
 }
 
-/* 🎯 新增：通用隱藏 class，供登出按鈕等非 modal 元件共用 */
+/* 新增：通用隱藏 class，供登出按鈕等非 modal 元件共用 */
 .hidden {
     display: none !important;
 }
 
-/* 🎯 新增：登出按鈕樣式 */
+/* 新增：登出按鈕樣式 */
 .btn-action.logout {
     margin-top: 12px;
     background-color: transparent;
@@ -408,8 +415,19 @@ input.today-count::-webkit-inner-spin-button {
     margin-bottom: 12px;
 }
 
-/* 🎯 新增：一鍵解鎖模式樣式 */
+/* 一鍵解鎖模式 + 排序：兩顆按鈕並排顯示 */
 .bulk-unlock-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.bulk-unlock-bar .btn-action {
+    flex: 1;
+}
+
+/* 排序下拉選單：點「排序」按鈕後才展開 */
+.sort-options {
     margin-bottom: 10px;
 }
 
@@ -506,7 +524,7 @@ input.today-count::-webkit-inner-spin-button {
     flex-shrink: 0;
 }
 
-/* 🎯 新增：更新紀錄彈窗樣式 */
+/* 新增：更新紀錄彈窗樣式 */
 .version-entry {
     padding: 12px;
     border-bottom: 1px solid #f1f5f9;
@@ -556,61 +574,47 @@ input.today-count::-webkit-inner-spin-button {
 .bottom-nav { 
     position: fixed; 
     bottom: 0; left: 0; right: 0; 
-    height: 68px;               /* 🎯 手機板維持原本高度 */
+    height: 68px;               /* 手機板維持原本高度 */
     background-color: #14b8a6; 
     display: flex; 
-    justify-content: center;  /* 🎯 只剩一顆按鈕，置中顯示 */
+    justify-content: center;  /* 只剩一顆按鈕，置中顯示 */
     align-items: center; 
     padding: 0 12px; 
     box-shadow: 0 -4px 12px rgba(0,0,0,0.1); 
     z-index: 999;
 }
 
-/* 🎯 完整招式庫按鈕：手機板維持原本的長條按鈕樣式（圖示 + 文字並排） */
+/* 完整招式庫按鈕：純圖示的圓形按鈕（不含文字），手機板尺寸較小 */
 .btn-library-main {
-    width: 100%;
-    max-width: 320px;
-    height: 44px;
+    width: 56px;
+    height: 56px;
     border: none;
-    border-radius: 999px;
+    border-radius: 50%;
     background-color: #ffffff;
     color: #14b8a6;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    padding: 0 18px;
+    padding: 0;
     box-shadow: 0 4px 10px rgba(0,0,0,0.12);
 }
 
 .btn-library-main:active {
-    transform: scale(0.98);
+    transform: scale(0.96);
 }
 
 .btn-library-main:active .library-badge {
     transform: scale(0.97);
 }
 
-/* 手機板：圓形照片縮小，跟文字並排顯示，環繞文字（SVG）先隱藏不用 */
+/* 手機板：圓形照片 */
 .library-badge {
     position: relative;
-    width: 32px;
-    height: 32px;
+    width: 44px;
+    height: 44px;
     flex-shrink: 0;
     transition: transform 0.1s;
-}
-
-.library-badge-ring {
-    display: none; /* 🎯 手機板不顯示環繞文字，維持原本簡單樣式 */
-}
-
-.library-ring-text,
-.library-ring-text textPath {
-    fill: #ffffff;
-    font-size: 15px;
-    font-weight: 700;
-    letter-spacing: 1px;
 }
 
 .library-icon-wrap {
@@ -627,8 +631,10 @@ input.today-count::-webkit-inner-spin-button {
 }
 
 .library-icon-wrap.no-image::before {
-    content: "🪀";
+    content: "招";
     font-size: 1.1rem;
+    font-weight: bold;
+    color: #14b8a6;
 }
 
 .library-icon-img {
@@ -638,24 +644,18 @@ input.today-count::-webkit-inner-spin-button {
     display: block;
 }
 
-.library-icon-label {
-    font-size: 1rem;
-    font-weight: bold;
-    letter-spacing: 1px;
-}
-
 /* ==========================================================================
    8. 響應式設計 (RWD) — 平板 / 電腦版面
    本檔案以手機版面為基礎 (mobile-first)，以下針對較寬螢幕做加強，
    不影響手機版原本的排版與操作方式。
    ========================================================================== */
 
-/* 🎯 平板以上 (>= 768px)：加寬版面，兩張卡片並排顯示，彈窗變寬更好閱讀 */
+/* 平板以上 (>= 768px)：加寬版面，兩張卡片並排顯示，彈窗變寬更好閱讀 */
 @media (min-width: 768px) {
     .app-content {
         max-width: 900px;
         padding: 24px;
-        /* 🎯 【修改】今日穩固招式／新招式挑戰 並排放在左側並上下堆疊，
+        /* 【修改】今日穩固招式／新招式挑戰 並排放在左側並上下堆疊，
            今日練習統計則放在右側，方便同時瀏覽 */
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -695,18 +695,18 @@ input.today-count::-webkit-inner-spin-button {
         font-size: 2.2rem;
     }
 
-    /* 🎯 以下僅套用於電腦版：頁首加高、切換帳號按鈕放大、版本號放大 */
+    /* 以下僅套用於電腦版：頁首加高、切換帳號按鈕放大、版本號放大 */
     .app-header {
         height: 96px;
     }
 
     .header-account-btn {
-        padding: 6px 16px;      /* 🎯 電腦版：切換帳號按鈕放大 */
+        padding: 6px 16px;      /* 電腦版：切換帳號按鈕放大 */
         font-size: 0.82rem;
     }
 
     .version-badge {
-        padding: 4px 14px;       /* 🎯 電腦版：版本號放大 */
+        padding: 4px 14px;       /* 電腦版：版本號放大 */
         font-size: 1rem;
     }
 
@@ -721,21 +721,21 @@ input.today-count::-webkit-inner-spin-button {
         height: auto;
         min-height: 110px;
         padding: 14px 12px;
-        overflow: visible;   /* 🎯 讓浮出的圓形按鈕可以露出導覽列上緣 */
+        overflow: visible;   /* 讓浮出的圓形按鈕可以露出導覽列上緣 */
     }
 
-    /* 🎯 以下僅套用於電腦版：完整招式庫改為圓形按鈕，懸浮在畫面上，文字置於上方 90 度弧形範圍內 */
+    /* 以下僅套用於電腦版：完整招式庫改為圓形按鈕，懸浮在畫面上，文字置於上方 90 度弧形範圍內 */
     .btn-library-main {
         width: 144px;
         height: 144px;
-        border-radius: 50%;          /* 🎯 按鈕外框變成一個圓 */
+        border-radius: 50%;          /* 按鈕外框變成一個圓 */
         background-color: #ffffff;
         border: 3px solid #14b8a6;
         box-shadow: 0 12px 26px rgba(0, 0, 0, 0.28);
         padding: 0;
         gap: 0;
         position: relative;
-        transform: translateY(-38px); /* 🎯 讓按鈕懸浮在導覽列上方（按鈕放大後同步調整浮出高度） */
+        transform: translateY(-38px); /* 讓按鈕懸浮在導覽列上方（按鈕放大後同步調整浮出高度） */
     }
 
     .btn-library-main:active {
@@ -751,39 +751,19 @@ input.today-count::-webkit-inner-spin-button {
         height: 100%;
     }
 
-    .library-badge-ring {
-        display: block;
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-    }
-
-    .library-ring-text,
-    .library-ring-text textPath {
-        fill: #14b8a6;   /* 🎯 底色改成白色圓形，文字改用主色調才看得清楚 */
-        font-size: 15px;
-        font-weight: 700;
-        letter-spacing: 0.5px;
-    }
-
     .library-icon-wrap {
         position: absolute;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        width: 94px;   /* 🎯 白圓放大一點 */
-        height: 94px;
+        width: 116px;   /* 按鈕內已不再需要保留文字空間，白圓可以再放大填滿 */
+        height: 116px;
         border: 3px solid #ffffff;
         box-shadow: 0 3px 8px rgba(0,0,0,0.2);
     }
 
     .library-icon-wrap.no-image::before {
         font-size: 2.4rem;
-    }
-
-    .library-icon-label {
-        display: none; /* 電腦版文字改用上方弧形 SVG 顯示，不需要額外的文字標籤 */
     }
 
     .modal-content {
@@ -793,9 +773,24 @@ input.today-count::-webkit-inner-spin-button {
     #modal-library .modal-content {
         max-width: 620px;
     }
+
+    /* 較寬螢幕：大分類／小分類／招式改成一排並排顯示 */
+    .trick-picker {
+        flex-direction: row;
+    }
 }
 
-/* 🎯 桌機大螢幕 (>= 1024px)：再放寬一些，彈窗、字級都再放大一點，閱讀更舒適 */
+/* 版本紀錄彈窗的「返回首頁」按鈕，跟招式庫彈窗一樣需要 flex-shrink:0，
+   否則更新紀錄內容一多，按鈕就會在彈窗高度不夠時被壓扁變形。 */
+#btn-version-close {
+    height: 48px;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+}
+
+/* 桌機大螢幕 (>= 1024px)：再放寬一些，彈窗、字級都再放大一點，閱讀更舒適 */
 @media (min-width: 1024px) {
     .app-content {
         max-width: 1080px;
@@ -814,7 +809,7 @@ input.today-count::-webkit-inner-spin-button {
     }
 }
 
-/* 🎯 極小螢幕 (<= 360px)：避免計數器區域被擠壓換行 */
+/* 極小螢幕 (<= 360px)：避免計數器區域被擠壓換行 */
 @media (max-width: 360px) {
     .counter-display {
         gap: 10px;

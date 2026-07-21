@@ -11,7 +11,7 @@ export const TrickLibrary = {
     _saveTimer: null,
     _pendingUser: null,
 
-    // 🎯 新增：debounce 儲存。原本每按一次 +1/-1 就立刻打一次 Firestore setDoc，
+    // 新增：debounce 儲存。原本每按一次 +1/-1 就立刻打一次 Firestore setDoc，
     // 連續點擊會產生大量不必要的寫入，甚至可能因為網路延遲導致「較新的次數」
     // 被「較舊但比較晚回來」的請求覆蓋掉（race condition）。
     // 改成：短時間內的多次呼叫合併成一次，等使用者停止點擊 800ms 後才真正上傳。
@@ -45,18 +45,18 @@ export const TrickLibrary = {
         this.domClose = document.getElementById('btn-library-close');
         this.domList = document.getElementById('library-list');
         
-        // 🎯 新增：取得篩選 DOM 節點
+        // 新增：取得篩選 DOM 節點
         this.domFilterCategory = document.getElementById('filter-category');
         this.domFilterSubcategory = document.getElementById('filter-subcategory');
 
-        // 🎯 修正：今日統計原本是彈窗，現在直接顯示於主畫面上，
+        // 修正：今日統計原本是彈窗，現在直接顯示於主畫面上，
         // 不再需要開關彈窗，只需要抓到主畫面上的清單容器並隨時重新渲染即可。
         this.domStatsList = document.getElementById('stats-section-list');
 
         if (this.domTrigger) this.domTrigger.onclick = () => this.openModal();
         if (this.domClose) this.domClose.onclick = () => this.closeModal();
 
-        // 🎯 新增：綁定篩選選單切換事件
+        // 新增：綁定篩選選單切換事件
         if (this.domFilterCategory) {
             this.domFilterCategory.onchange = () => {
                 this.updateSubcategoryOptions(); // 大分類改了，連動更新小分類清單
@@ -67,11 +67,30 @@ export const TrickLibrary = {
             this.domFilterSubcategory.onchange = () => this.renderLibrary();
         }
 
-        // 🎯 新增：一鍵解鎖模式相關 DOM 節點與事件綁定
+        // 一鍵解鎖模式相關 DOM 節點與事件綁定
         this.domBulkToggle = document.getElementById('btn-bulk-unlock-toggle');
         this.domBulkActions = document.getElementById('bulk-unlock-actions');
         this.domBulkConfirm = document.getElementById('btn-bulk-unlock-confirm');
         this.domBulkCancel = document.getElementById('btn-bulk-unlock-cancel');
+
+        // 新增：排序功能相關 DOM 節點與事件綁定。點「排序」按鈕展開/收合下拉選單，
+        // 選單改變時依選擇的邏輯重新排列並重新渲染招式清單。
+        this.domSortToggle = document.getElementById('btn-sort-toggle');
+        this.domSortOptions = document.getElementById('sort-options');
+        this.domSortSelect = document.getElementById('select-sort-mode');
+        this.sortMode = 'default';
+
+        if (this.domSortToggle) {
+            this.domSortToggle.onclick = () => {
+                if (this.domSortOptions) this.domSortOptions.classList.toggle('hidden');
+            };
+        }
+        if (this.domSortSelect) {
+            this.domSortSelect.onchange = (e) => {
+                this.sortMode = e.target.value;
+                this.renderLibrary();
+            };
+        }
 
         if (this.domBulkToggle) this.domBulkToggle.onclick = () => this.setBulkUnlockMode(true);
         if (this.domBulkCancel) this.domBulkCancel.onclick = () => this.setBulkUnlockMode(false);
@@ -95,12 +114,12 @@ export const TrickLibrary = {
                     if (typeof window.AppController.onBulkUnlockDone === 'function') window.AppController.onBulkUnlockDone();
                 }
 
-                // 🎯 用 window.currentUser 而不是 import AuthSystem，避免 library.js 與 auth.js 互相 import 造成循環依賴
+                // 用 window.currentUser 而不是 import AuthSystem，避免 library.js 與 auth.js 互相 import 造成循環依賴
                 if (window.currentUser) {
                     await this.saveUserProgress(window.currentUser);
                 }
 
-                alert(`🎉 已成功解鎖 ${count} 個招式！`);
+                alert(`已成功解鎖 ${count} 個招式！`);
             };
         }
 
@@ -112,7 +131,7 @@ export const TrickLibrary = {
         this.historyData = {};
     },
 
-    // 🎯 新增：動態生成大分類與小分類選單選項
+    // 新增：動態生成大分類與小分類選單選項
     initFilterOptions() {
         if (!this.domFilterCategory) return;
         
@@ -133,7 +152,7 @@ export const TrickLibrary = {
         this.updateSubcategoryOptions();
     },
 
-    // 🎯 新增：根據選擇的大分類，連動更新小分類的選項
+    // 新增：根據選擇的大分類，連動更新小分類的選項
     updateSubcategoryOptions() {
         if (!this.domFilterCategory || !this.domFilterSubcategory) return;
         
@@ -156,7 +175,7 @@ export const TrickLibrary = {
         });
     },
 
-    // 🎯 新增：自動偵測「舊版純數字招式 ID」格式的雲端資料（例如 "1","2","3"...），
+    // 新增：自動偵測「舊版純數字招式 ID」格式的雲端資料（例如 "1","2","3"...），
     // 並依照原本的數字順序，對應搬遷到目前的新版 ID（例如 "1_1_1"）。
     // 招式 ID 從純數字改成「大分類_小分類_序號」格式後，陣列本身的排列順序並沒有變動，
     // 只有 id 欄位的寫法改變，所以「舊的第 N 個數字」＝「目前 defaultTricks 陣列中的第 N 筆」。
@@ -179,7 +198,7 @@ export const TrickLibrary = {
             return { tricks: Array.isArray(cloudTricks) ? Object.fromEntries(entries) : cloudTricks, migrated: false };
         }
 
-        console.warn(`⚠️ 偵測到舊版純數字招式 ID 資料，自動依原本順序搬遷至新版 ID...`);
+        console.warn(`偵測到舊版純數字招式 ID 資料，自動依原本順序搬遷至新版 ID...`);
 
         const sortedByOldNumber = entries
             .map(([key, val]) => [parseInt(key, 10), val])
@@ -200,7 +219,7 @@ export const TrickLibrary = {
         return { tricks: migratedTricks, migrated: true };
     },
 
-    // 🎯 修正：儲存邏輯拆成「全域資料」與「每日資料」兩種文件：
+    // 修正：儲存邏輯拆成「全域資料」與「每日資料」兩種文件：
     // - users/{username}：只放「跟預設狀態不同」的招式（已解鎖、或累積次數 > 0），
     //   也就是解鎖狀態與累積次數這種「不分哪一天、永久累積」的全域資料。
     // - users/{username}/days/{yyyy-mm-dd}：每個有登入練習過的日期各自一份文件，
@@ -249,7 +268,7 @@ export const TrickLibrary = {
                     });
                 }
 
-                // 🎯 全域資料現在本來就只會存「有變更」的招式（刻意精簡），
+                // 全域資料現在本來就只會存「有變更」的招式（刻意精簡），
                 // 所以不能再用「雲端招式數量 < 招式庫總數」來判斷要不要重新上傳（正常情況下也一定會比較少）。
                 // 只有「剛搬遷完舊格式資料」才需要立刻回存新格式，其餘情況維持原樣即可。
                 return migrated;
@@ -308,11 +327,11 @@ export const TrickLibrary = {
         }
     },
 
-    // 🎯 修正：原本的 openStatsModal 改名為 renderStatsSection，
+    // 修正：原本的 openStatsModal 改名為 renderStatsSection，
     // 直接把內容畫進主畫面上的統計區塊，而不是開啟彈窗。
     // 只要任何練習次數有變動（+/-、直接輸入、挑戰成功、切換帳號等），呼叫這個方法即可即時更新。
     //
-    // 🎯 修正核心：原本會優先讀取 this.historyData[todayStr]（雲端「上一次存檔當下」的快照），
+    // 修正核心：原本會優先讀取 this.historyData[todayStr]（雲端「上一次存檔當下」的快照），
     // 但使用者在兩次自動存檔（debounce 800ms）之間持續輸入次數時，historyData 並不會跟著更新，
     // 導致畫面上顯示的統計卡在「最後一次存檔」的舊數字，看起來像是「只記錄到最高的數量」。
     // 改成一律直接讀取 this.tricks 上即時的 todayCount，確保跟每一招的輸入完全同步。
@@ -339,8 +358,9 @@ export const TrickLibrary = {
             window.AppController.refreshStableSelect();
         }
         
-        // 🎯 每次開啟彈窗都重置為一般瀏覽模式，並初始化分類下拉選單清單選項
+        // 每次開啟彈窗都重置為一般瀏覽模式，收合排序選單，並初始化分類下拉選單清單選項
         this.setBulkUnlockMode(false);
+        if (this.domSortOptions) this.domSortOptions.classList.add('hidden');
         this.initFilterOptions();
         
         this.renderLibrary(); 
@@ -349,7 +369,7 @@ export const TrickLibrary = {
     
     closeModal() { if (this.domLibraryModal) this.domLibraryModal.classList.add('hidden'); },
 
-    // 🎯 新增：切換一鍵解鎖模式（開啟時：只顯示未解鎖招式，並把次數顯示換成 checkbox）
+    // 新增：切換一鍵解鎖模式（開啟時：只顯示未解鎖招式，並把次數顯示換成 checkbox）
     setBulkUnlockMode(enabled) {
         this.bulkUnlockMode = enabled;
         if (this.domBulkActions) this.domBulkActions.classList.toggle('hidden', !enabled);
@@ -357,7 +377,7 @@ export const TrickLibrary = {
         this.renderLibrary();
     },
 
-    // 🎯 新增：批次解鎖。只標記為已解鎖，不動 totalCount/todayCount，
+    // 新增：批次解鎖。只標記為已解鎖，不動 totalCount/todayCount，
     // 因為這是「標記我本來就已經會了」的快速動作，不代表剛才有練習一次。
     bulkUnlock(ids) {
         let count = 0;
@@ -371,20 +391,45 @@ export const TrickLibrary = {
         return count;
     },
 
+    // 新增：依照目前選定的排序邏輯排列招式清單。'default' 維持原本（分類）順序，
+    // 其餘選項則在不影響原始資料的情況下，回傳一份排序過的複本。
+    applySortMode(list) {
+        if (this.sortMode === 'default') return list;
+
+        const sorted = [...list];
+        switch (this.sortMode) {
+            case 'count-desc':
+                sorted.sort((a, b) => b.totalCount - a.totalCount);
+                break;
+            case 'count-asc':
+                sorted.sort((a, b) => a.totalCount - b.totalCount);
+                break;
+            case 'unlocked-first':
+                sorted.sort((a, b) => (b.isUnlocked === true) - (a.isUnlocked === true));
+                break;
+            case 'locked-first':
+                sorted.sort((a, b) => (a.isUnlocked === true) - (b.isUnlocked === true));
+                break;
+        }
+        return sorted;
+    },
+
     renderLibrary() {
         if (!this.domList) return;
 
-        // 🎯 核心修改：取得當前下拉選單選中的篩選條件值
+        // 取得當前下拉選單選中的篩選條件值
         const selectedCat = this.domFilterCategory ? this.domFilterCategory.value : "";
         const selectedSub = this.domFilterSubcategory ? this.domFilterSubcategory.value : "";
 
-        // 🎯 核心修改：過濾出符合條件的招式；一鍵解鎖模式下只顯示尚未解鎖的招式
-        const filteredTricks = this.tricks.filter(trick => {
+        // 過濾出符合條件的招式；一鍵解鎖模式下只顯示尚未解鎖的招式
+        let filteredTricks = this.tricks.filter(trick => {
             const matchCat = !selectedCat || trick.category === selectedCat;
             const matchSub = !selectedSub || trick.subcategory === selectedSub;
             const matchLock = !this.bulkUnlockMode || !trick.isUnlocked;
             return matchCat && matchSub && matchLock;
         });
+
+        filteredTricks = this.applySortMode(filteredTricks);
 
         if (filteredTricks.length === 0) {
             const emptyMsg = this.bulkUnlockMode ? '目前沒有可解鎖的招式了' : '找不到符合此分類的招式';
@@ -397,10 +442,10 @@ export const TrickLibrary = {
             <div class="lib-item" style="${trick.isCustom ? 'border-left: 4px solid #e67e22; background-color: #fffaf5;' : ''}">
                 <div>
                     <span style="font-size:0.72rem; background:#7f8c8d; color:white; padding:1px 4px; border-radius:3px; margin-right:4px;">
-                        ${trick.category || '未分類'} ➔ ${trick.subcategory || '未分類'}
+                        ${trick.category || '未分類'} › ${trick.subcategory || '未分類'}
                     </span>
                     <strong style="display:block; margin-top:3px; color:#2c3e50;">
-                        ${trick.name} ${trick.isUnlocked ? '' : '🔒'} 
+                        ${trick.name}${trick.isUnlocked ? '' : ' （未解鎖）'}
                     </strong>
                 </div>
                 ${this.bulkUnlockMode
@@ -411,7 +456,7 @@ export const TrickLibrary = {
         `).join('');
     },
 
-    // 🎯 新增：統一產生「招式名稱 (大分類/小分類)」的顯示字串。
+    // 新增：統一產生「招式名稱 (大分類/小分類)」的顯示字串。
     // 原本 app.js 直接寫 `${t.category || ''}/${t.subcategory || ''}`，
     // 當兩者皆為空時會顯示成不好看的 "招式名稱 ()" 或 "招式名稱 (/)"。
     formatTrickLabel(trick) {
@@ -431,7 +476,7 @@ export const TrickLibrary = {
         const trick = this.tricks.find(t => t.id === id);
         if (!trick) return;
 
-        // 🎯 修正：原本 todayCount / totalCount 各自獨立判斷是否 >= 0，
+        // 修正：原本 todayCount / totalCount 各自獨立判斷是否 >= 0，
         // 當兩者數值不同時（例如跨日重置後 todayCount=0 但 totalCount>0）
         // 按下「-」可能只讓其中一個扣減，導致兩者從此不同步。
         // 改成同時檢查兩者，任一個會小於 0 就整組不執行。
@@ -443,7 +488,7 @@ export const TrickLibrary = {
         trick.totalCount = nextTotal;
     },
 
-    // 🎯 新增：直接輸入「今日」次數。用差值 (delta) 同步調整 totalCount，
+    // 新增：直接輸入「今日」次數。用差值 (delta) 同步調整 totalCount，
     // 邏輯上等同於連續按了好幾次 +/-，藉此維持 todayCount 與 totalCount 的關係一致。
     setTodayCount(id, newValue) {
         const trick = this.tricks.find(t => t.id === id);

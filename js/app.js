@@ -14,7 +14,7 @@ export const AppController = {
         TrickLibrary.init();
         // 啟動登入管理系統
         AuthSystem.init(); 
-        // 🎯 新增：初始化版本資訊顯示
+        // 初始化版本資訊顯示
         VersionInfo.init();
         
         // 確保綁定事件
@@ -23,7 +23,7 @@ export const AppController = {
         this.bindSelectEvents();
         this.bindTodayInputEvents();
 
-        // 🎯 新增：使用者關閉分頁或切換到背景前，把還在 debounce 等待中的次數盡量送出，
+        // 使用者關閉分頁或切換到背景前，把還在 debounce 等待中的次數盡量送出，
         // 避免最後幾下 +1 因為還沒到 800ms 就被使用者關掉頁面而遺失。
         window.addEventListener('beforeunload', () => {
             if (AuthSystem.currentUser) TrickLibrary.flushSave();
@@ -44,11 +44,11 @@ export const AppController = {
         this.refreshChallengeSelect();
         this.nextStableTrick();
         this.nextChallengeTrick();
-        // 🎯 新增：登入/登出/切換帳號後，主畫面上的今日練習統計也要跟著刷新
+        // 登入/登出/切換帳號後，主畫面上的今日練習統計也要跟著刷新
         TrickLibrary.renderStatsSection();
     },
 
-    // 🎯 新增：一鍵解鎖完成後呼叫。若目前顯示的挑戰招式剛好被解鎖了，換一個新的挑戰招式；
+    // 一鍵解鎖完成後呼叫。若目前顯示的挑戰招式剛好被解鎖了，換一個新的挑戰招式；
     // 若原本沒有任何穩固招式可顯示，現在有了，補抽一個。
     onBulkUnlockDone() {
         if (this.currentChallengeTrick && this.currentChallengeTrick.isUnlocked) {
@@ -58,37 +58,95 @@ export const AppController = {
             this.nextStableTrick();
         } else {
             this.renderStableCard();
+            this.refreshStableSelect();
         }
     },
-    
+
+    // === 大分類 / 小分類 / 招式 三層連動選單 ===
+    // type 只會是 'stable'（今日穩固招式，招式池 = 已解鎖）或 'challenge'（新招式挑戰，招式池 = 未解鎖）
+
+    getPoolForType(type) {
+        if (!TrickLibrary.tricks) return [];
+        return type === 'stable'
+            ? TrickLibrary.tricks.filter(t => t.isUnlocked)
+            : TrickLibrary.tricks.filter(t => !t.isUnlocked);
+    },
+
+    getCurrentTrickForType(type) {
+        return type === 'stable' ? this.currentStableTrick : this.currentChallengeTrick;
+    },
+
+    // 重新產生「大分類」選單，並自動選到目前招式所屬的分類（如果找得到），
+    // 接著往下連動重建「小分類」與「招式」選單。
+    populateCategorySelect(type) {
+        const catEl = document.getElementById(`select-${type}-category`);
+        if (!catEl) return;
+
+        const pool = this.getPoolForType(type);
+        const categories = [...new Set(pool.map(t => t.category).filter(Boolean))];
+
+        catEl.innerHTML = '<option value="">大分類</option>' +
+            categories.map(c => `<option value="${c}">${c}</option>`).join('');
+
+        const current = this.getCurrentTrickForType(type);
+        if (current && categories.includes(current.category)) {
+            catEl.value = current.category;
+        }
+
+        this.populateSubcategorySelect(type);
+    },
+
+    populateSubcategorySelect(type) {
+        const catEl = document.getElementById(`select-${type}-category`);
+        const subEl = document.getElementById(`select-${type}-subcategory`);
+        if (!subEl) return;
+
+        const pool = this.getPoolForType(type);
+        const selectedCat = catEl ? catEl.value : '';
+        const subs = [...new Set(
+            pool.filter(t => !selectedCat || t.category === selectedCat)
+                .map(t => t.subcategory)
+                .filter(Boolean)
+        )];
+
+        subEl.innerHTML = '<option value="">小分類</option>' +
+            subs.map(s => `<option value="${s}">${s}</option>`).join('');
+
+        const current = this.getCurrentTrickForType(type);
+        if (current && (!selectedCat || current.category === selectedCat) && subs.includes(current.subcategory)) {
+            subEl.value = current.subcategory;
+        }
+
+        this.populateTrickSelect(type);
+    },
+
+    populateTrickSelect(type) {
+        const catEl = document.getElementById(`select-${type}-category`);
+        const subEl = document.getElementById(`select-${type}-subcategory`);
+        const trickEl = document.getElementById(`select-${type}-trick`);
+        if (!trickEl) return;
+
+        const pool = this.getPoolForType(type);
+        const selectedCat = catEl ? catEl.value : '';
+        const selectedSub = subEl ? subEl.value : '';
+        const matched = pool.filter(t =>
+            (!selectedCat || t.category === selectedCat) &&
+            (!selectedSub || t.subcategory === selectedSub)
+        );
+
+        trickEl.innerHTML = '<option value="">選擇招式</option>' +
+            matched.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+
+        const current = this.getCurrentTrickForType(type);
+        trickEl.value = (current && matched.some(t => t.id === current.id)) ? current.id : '';
+    },
+
     refreshStableSelect() {
-        const selectEl = document.getElementById('select-stable-trick');
-        if (!selectEl) return;
-        selectEl.innerHTML = '<option value="">-- 手選熟練招式 --</option>';
-        if (!TrickLibrary.tricks || TrickLibrary.tricks.length === 0) return;
-        
-        const unlockedTricks = TrickLibrary.tricks.filter(t => t.isUnlocked);
-        unlockedTricks.forEach(t => {
-            const opt = document.createElement('option');
-            opt.value = t.id;
-            opt.innerText = `[${t.category || '熟練'}] ${t.name}`;
-            selectEl.appendChild(opt);
-        });
+        this.populateCategorySelect('stable');
     },
 
     refreshChallengeSelect() {
-        const selectEl = document.getElementById('select-challenge-trick');
-        if (!selectEl) return;
-        selectEl.innerHTML = '<option value="">-- 手選挑戰招式 --</option>';
-        if (!TrickLibrary.tricks || TrickLibrary.tricks.length === 0) return;
-        
-        const lockedTricks = TrickLibrary.tricks.filter(t => !t.isUnlocked);
-        lockedTricks.forEach(t => {
-            const opt = document.createElement('option');
-            opt.value = t.id;
-            opt.innerText = `[${t.category || '挑戰'}] ${t.name}`;
-            selectEl.appendChild(opt);
-        });
+        this.populateCategorySelect('challenge');
     },
 
     renderStableCard() {
@@ -131,7 +189,7 @@ export const AppController = {
         if (!nameEl) return;
 
         if (!this.currentChallengeTrick) {
-            nameEl.innerText = "恭喜全招式解鎖！🎉";
+            nameEl.innerText = "恭喜全招式解鎖！";
             return;
         }
         const t = this.currentChallengeTrick;
@@ -144,6 +202,7 @@ export const AppController = {
         if (pool.length === 0) {
             this.currentStableTrick = null;
             this.renderStableCard();
+            this.refreshStableSelect();
             return;
         }
 
@@ -158,8 +217,7 @@ export const AppController = {
             this.historyStableIds.push(randomTrick.id);
             this.currentStableTrick = randomTrick;
             this.renderStableCard();
-            const selectEl = document.getElementById('select-stable-trick');
-            if (selectEl) selectEl.value = randomTrick.id;
+            this.refreshStableSelect(); // 同步大分類／小分類／招式選單顯示目前招式
         }
     },
 
@@ -169,6 +227,7 @@ export const AppController = {
         if (pool.length === 0) {
             this.currentChallengeTrick = null;
             this.renderChallengeCard();
+            this.refreshChallengeSelect();
             return;
         }
 
@@ -183,16 +242,12 @@ export const AppController = {
             this.historyChallengeIds.push(randomTrick.id);
             this.currentChallengeTrick = randomTrick;
             this.renderChallengeCard();
-            const selectEl = document.getElementById('select-challenge-trick');
-            if (selectEl) selectEl.value = randomTrick.id;
+            this.refreshChallengeSelect(); // 同步大分類／小分類／招式選單顯示目前招式
         }
     },
 
-    // 🎯 新增：「今日」次數改成 input 之後，讓使用者可以直接輸入數字，
-    // 不用只能一直按 +/-。
-    // 🎯 修正：原本只綁 change（要等使用者按 Enter 或離開輸入框才觸發），
-    // 導致「今日練習統計」在使用者還在輸入時看不到最新次數，像是卡住一樣。
-    // 改成同時監聽 input 事件，使用者每打一個字，次數與下方統計就同步更新。
+    // 「今日」次數改成 input 之後，讓使用者可以直接輸入數字，不用只能一直按 +/-。
+    // 同時監聽 input 事件，使用者每打一個字，次數與下方統計就同步更新（不用等離開輸入框）。
     bindTodayInputEvents() {
         const input = document.querySelector('#stable-trick-card .today-count');
         if (!input) return;
@@ -201,7 +256,7 @@ export const AppController = {
             if (!this.currentStableTrick) return;
             TrickLibrary.setTodayCount(this.currentStableTrick.id, input.value);
             this.renderStableCard();
-            // 🎯 新增：手動輸入今日次數後，同步刷新主畫面上的今日練習統計
+            // 手動輸入今日次數後，同步刷新主畫面上的今日練習統計
             TrickLibrary.renderStatsSection();
 
             if (AuthSystem.currentUser) {
@@ -224,12 +279,10 @@ export const AppController = {
                 
                 TrickLibrary.updateCount(this.currentStableTrick.id, amount);
                 this.renderStableCard();
-                // 🎯 新增：+/- 次數後，同步刷新主畫面上的今日練習統計
+                // +/- 次數後，同步刷新主畫面上的今日練習統計
                 TrickLibrary.renderStatsSection();
                 
-                // 🎯 修正：原本每按一下 +1/-1 就立刻 await 一次 Firestore 寫入，
-                // 連點會塞爆網路請求，而且較舊的請求可能比較晚回來、覆蓋掉新的次數。
-                // 改成 debounce：停止點擊 800ms 後才真正上傳一次。
+                // debounce：停止點擊 800ms 後才真正上傳一次，避免連點塞爆網路請求
                 if (AuthSystem.currentUser) {
                     TrickLibrary.scheduleSave(AuthSystem.currentUser);
                 }
@@ -255,16 +308,16 @@ export const AppController = {
                 // 1. 執行解鎖（此時 library.js 內部會自動將次數 +1）
                 TrickLibrary.unlockTrick(targetId);
                 
-                // 🎯 修正核心：將剛剛解鎖成功的招式指定給當前熟練招式，以確保接下來渲染時資料正確同步
+                // 將剛剛解鎖成功的招式指定給當前熟練招式，以確保接下來渲染時資料正確同步
                 const unlockedTrick = TrickLibrary.tricks.find(t => t.id === targetId);
                 if (unlockedTrick) {
                     this.currentStableTrick = unlockedTrick;
                 }
 
-                alert(`🏆 恭喜成功解鎖【${targetName}】！`);
+                alert(`恭喜成功解鎖【${targetName}】！`);
                 
                 // 2. 同步至 Firebase（因為次數已經是 1，會精準觸發歷史紀錄上傳）
-                // 🎯 解鎖是重要事件，不用 debounce：取消還在等待中的計數存檔計時器，
+                // 解鎖是重要事件，不用 debounce：取消還在等待中的計數存檔計時器，
                 // 直接用目前（已包含解鎖結果）的最新狀態存一次就好，避免重複寫入。
                 if (AuthSystem.currentUser) {
                     if (TrickLibrary._saveTimer) {
@@ -278,43 +331,48 @@ export const AppController = {
                 this.refreshStableSelect();
                 this.refreshChallengeSelect();
 
-                // 🎯 修正核心：先將資料渲染至「今日穩固」卡片中顯示剛才+1的狀態，再抽取下一輪挑戰
+                // 先將資料渲染至「今日穩固」卡片中顯示剛才+1的狀態，再抽取下一輪挑戰
                 this.renderStableCard(); 
                 this.nextChallengeTrick();
-                // 🎯 新增：挑戰成功後次數也變動了，同步刷新主畫面上的今日練習統計
+                // 挑戰成功後次數也變動了，同步刷新主畫面上的今日練習統計
                 TrickLibrary.renderStatsSection();
             };
         }
     },
 
     bindSelectEvents() {
-        const selectStable = document.getElementById('select-stable-trick');
-        const selectChallenge = document.getElementById('select-challenge-trick');
+        ['stable', 'challenge'].forEach(type => {
+            const catEl = document.getElementById(`select-${type}-category`);
+            const subEl = document.getElementById(`select-${type}-subcategory`);
+            const trickEl = document.getElementById(`select-${type}-trick`);
 
-        // 🎯 修正：招式 ID 已改為 "1_1_1" 這種字串格式，原本用 parseInt() 轉換
-        // 會把 "1_1_1" 誤解析成數字 1，導致選單選到錯的招式。改成直接用字串比對。
-        if (selectStable) {
-            selectStable.onchange = (e) => {
-                const selectedId = e.target.value;
-                if (!selectedId) return;
-                const found = TrickLibrary.tricks.find(t => t.id === selectedId);
-                if (found) {
-                    this.currentStableTrick = found;
-                    this.renderStableCard();
-                }
-            };
-        }
+            if (catEl) {
+                catEl.onchange = () => this.populateSubcategorySelect(type);
+            }
 
-        if (selectChallenge) {
-            selectChallenge.onchange = (e) => {
-                const selectedId = e.target.value;
-                if (!selectedId) return;
-                const found = TrickLibrary.tricks.find(t => t.id === selectedId);
-                if (found) {
-                    this.currentChallengeTrick = found;
-                    this.renderChallengeCard();
-                }
-            };
-        }
+            if (subEl) {
+                subEl.onchange = () => this.populateTrickSelect(type);
+            }
+
+            // 招式 ID 是 "1_1_1" 這種字串格式，用字串比對，不能 parseInt()
+            if (trickEl) {
+                trickEl.onchange = (e) => {
+                    const selectedId = e.target.value;
+                    if (!selectedId) return;
+                    const found = TrickLibrary.tricks.find(t => t.id === selectedId);
+                    if (!found) return;
+
+                    if (type === 'stable') {
+                        this.currentStableTrick = found;
+                        this.renderStableCard();
+                    } else {
+                        this.currentChallengeTrick = found;
+                        this.renderChallengeCard();
+                    }
+                    // 選定招式後，讓大分類／小分類選單同步顯示這個招式的分類
+                    this.populateCategorySelect(type);
+                };
+            }
+        });
     }
 };

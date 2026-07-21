@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
     <title>劍玉招式練習</title>
     <link rel="stylesheet" href="css/style.css"/>
-    <!-- 🎯 新增：網站圖示（瀏覽器分頁、加入主畫面的圖示）統一使用招式庫照片 -->
+    <!-- 網站圖示（瀏覽器分頁、加入主畫面的圖示）統一使用招式庫照片 -->
     <link rel="icon" type="image/png" href="images/library-icon.png"/>
     <link rel="apple-touch-icon" href="images/library-icon.png"/>
 </head>
@@ -14,7 +14,7 @@
     <header class="app-header">
         <h1>劍玉招式練習</h1>
         <button id="btn-version" class="version-badge" title="查看更新紀錄">v-</button>
-        <!-- 🎯 修改：選手資訊與切換帳號按鈕改成同一排，按鈕放在選手文字右側 -->
+        <!-- 修改：選手資訊與切換帳號按鈕改成同一排，按鈕放在選手文字右側 -->
         <div class="header-account-row">
             <div id="user-status" class="user-status">未登入 (功能皆可使用，進度將不儲存)</div>
             <button id="btn-login-trigger" class="header-account-btn">帳號登入</button>
@@ -36,9 +36,17 @@
                     <div class="trick-name" id="stable-trick-name">載入中...</div>
                     
                     <div class="card-controls">
-                        <select id="select-stable-trick" class="app-select">
-                            <option value="">-- 手選熟練招式 --</option>
-                        </select>
+                        <div class="trick-picker">
+                            <select id="select-stable-category" class="app-select">
+                                <option value="">大分類</option>
+                            </select>
+                            <select id="select-stable-subcategory" class="app-select">
+                                <option value="">小分類</option>
+                            </select>
+                            <select id="select-stable-trick" class="app-select">
+                                <option value="">選擇招式</option>
+                            </select>
+                        </div>
                         <button id="btn-next-stable" class="btn-action secondary">隨機換一招</button>
                     </div>
                 </div>
@@ -70,9 +78,17 @@
                     
                     
                     <div class="card-controls">
-                        <select id="select-challenge-trick" class="app-select">
-                            <option value="">-- 手選挑戰招式 --</option>
-                        </select>
+                        <div class="trick-picker">
+                            <select id="select-challenge-category" class="app-select">
+                                <option value="">大分類</option>
+                            </select>
+                            <select id="select-challenge-subcategory" class="app-select">
+                                <option value="">小分類</option>
+                            </select>
+                            <select id="select-challenge-trick" class="app-select">
+                                <option value="">選擇招式</option>
+                            </select>
+                        </div>
                         <button id="btn-next-challenge" class="btn-action secondary">隨機換一招</button>
                     </div>
                 </div>
@@ -87,20 +103,11 @@
     <nav class="bottom-nav">
         <button id="btn-library-trigger" class="btn-library-main" type="button" aria-label="完整招式庫">
             <span class="library-badge">
-                <svg viewBox="0 0 150 150" class="library-badge-ring" aria-hidden="true">
-                    <defs>
-                        <path id="libraryRingPath" d="M 31.16,31.16 A 62,62 0 0,1 118.84,31.16" />
-                    </defs>
-                    <text class="library-ring-text">
-                        <textPath href="#libraryRingPath" startOffset="50%" text-anchor="middle">完整招式庫</textPath>
-                    </text>
-                </svg>
                 <span class="library-icon-wrap">
                     <img src="images/library-icon.png" alt="完整招式庫" class="library-icon-img"
                          onerror="this.style.display='none'; this.parentElement.classList.add('no-image');" />
                 </span>
             </span>
-            <span class="library-icon-label">完整招式庫</span>
         </button>
     </nav>
 
@@ -131,7 +138,17 @@
             </div>
 
             <div class="bulk-unlock-bar">
-                <button id="btn-bulk-unlock-toggle" class="btn-action secondary">🔓 一鍵解鎖模式</button>
+                <button id="btn-bulk-unlock-toggle" class="btn-action secondary">一鍵解鎖模式</button>
+                <button id="btn-sort-toggle" class="btn-action secondary">排序</button>
+            </div>
+            <div id="sort-options" class="sort-options hidden">
+                <select id="select-sort-mode" class="app-select">
+                    <option value="default">預設順序</option>
+                    <option value="count-desc">練習次數：高到低</option>
+                    <option value="count-asc">練習次數：低到高</option>
+                    <option value="unlocked-first">已解鎖優先</option>
+                    <option value="locked-first">未解鎖優先</option>
+                </select>
             </div>
             <div id="bulk-unlock-actions" class="bulk-unlock-actions hidden">
                 <span class="bulk-unlock-tip">勾選要解鎖的招式，再按下方按鈕確認</span>
