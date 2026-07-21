@@ -85,7 +85,7 @@ export const AppController = {
         const pool = this.getPoolForType(type);
         const categories = [...new Set(pool.map(t => t.category).filter(Boolean))];
 
-        catEl.innerHTML = '<option value="">大分類</option>' +
+        catEl.innerHTML = '<option value="">全部</option>' +
             categories.map(c => `<option value="${c}">${c}</option>`).join('');
 
         const current = this.getCurrentTrickForType(type);
@@ -109,7 +109,7 @@ export const AppController = {
                 .filter(Boolean)
         )];
 
-        subEl.innerHTML = '<option value="">小分類</option>' +
+        subEl.innerHTML = '<option value="">全部</option>' +
             subs.map(s => `<option value="${s}">${s}</option>`).join('');
 
         const current = this.getCurrentTrickForType(type);

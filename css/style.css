@@ -190,11 +190,25 @@ body {
     gap: 8px;
 }
 
-/* 大分類／小分類／招式 三層連動選單 */
+/* 大分類／小分類／招式 三層連動選單：前兩項只依文字內容取寬度，第三項（招式）盡量伸展 */
 .trick-picker {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: 6px;
+}
+
+.trick-picker .app-select {
+    width: auto;
+    min-width: 0;
+}
+
+.trick-picker select:nth-of-type(1),
+.trick-picker select:nth-of-type(2) {
+    flex: 0 0 auto;
+}
+
+.trick-picker select:nth-of-type(3) {
+    flex: 1 1 auto;
 }
 
 /* ==========================================================================
@@ -415,19 +429,26 @@ input.today-count::-webkit-inner-spin-button {
     margin-bottom: 12px;
 }
 
-/* 一鍵解鎖模式 + 排序：兩顆按鈕並排顯示 */
-.bulk-unlock-bar {
+/* 排序依據：一打開招式庫就直接顯示，不需要另外按按鈕展開 */
+.sort-bar {
     display: flex;
+    align-items: center;
     gap: 8px;
     margin-bottom: 10px;
 }
 
-.bulk-unlock-bar .btn-action {
+.sort-label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+.sort-bar .app-select {
     flex: 1;
 }
 
-/* 排序下拉選單：點「排序」按鈕後才展開 */
-.sort-options {
+/* 一鍵解鎖模式 */
+.bulk-unlock-bar {
     margin-bottom: 10px;
 }
 
@@ -439,12 +460,26 @@ input.today-count::-webkit-inner-spin-button {
     margin-bottom: 10px;
 }
 
+.bulk-unlock-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
 .bulk-unlock-tip {
-    display: block;
     font-size: 0.8rem;
     color: #9a3412;
-    margin-bottom: 8px;
-    text-align: center;
+    flex: 1;
+}
+
+#btn-bulk-select-all {
+    width: auto;
+    height: 32px;
+    padding: 0 10px;
+    font-size: 0.8rem;
+    flex-shrink: 0;
 }
 
 .bulk-unlock-buttons {
@@ -480,6 +515,11 @@ input.today-count::-webkit-inner-spin-button {
 
 .lib-item:last-child {
     border-bottom: none;
+}
+
+.lib-item.locked {
+    background-color: #eef1f4;
+    opacity: 0.75;
 }
 
 .lib-item > div:first-child {
@@ -772,11 +812,6 @@ input.today-count::-webkit-inner-spin-button {
 
     #modal-library .modal-content {
         max-width: 620px;
-    }
-
-    /* 較寬螢幕：大分類／小分類／招式改成一排並排顯示 */
-    .trick-picker {
-        flex-direction: row;
     }
 }
 

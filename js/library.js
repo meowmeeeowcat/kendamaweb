@@ -72,19 +72,12 @@ export const TrickLibrary = {
         this.domBulkActions = document.getElementById('bulk-unlock-actions');
         this.domBulkConfirm = document.getElementById('btn-bulk-unlock-confirm');
         this.domBulkCancel = document.getElementById('btn-bulk-unlock-cancel');
+        this.domBulkSelectAll = document.getElementById('btn-bulk-select-all');
+        this.bulkSelectedIds = new Set(); // 記住目前已勾選的招式 id，切換分類篩選時不會被清空
 
-        // 新增：排序功能相關 DOM 節點與事件綁定。點「排序」按鈕展開/收合下拉選單，
-        // 選單改變時依選擇的邏輯重新排列並重新渲染招式清單。
-        this.domSortToggle = document.getElementById('btn-sort-toggle');
-        this.domSortOptions = document.getElementById('sort-options');
+        // 排序：開啟招式庫就直接顯示排序依據選單，不需要另外按按鈕展開
         this.domSortSelect = document.getElementById('select-sort-mode');
         this.sortMode = 'default';
-
-        if (this.domSortToggle) {
-            this.domSortToggle.onclick = () => {
-                if (this.domSortOptions) this.domSortOptions.classList.toggle('hidden');
-            };
-        }
         if (this.domSortSelect) {
             this.domSortSelect.onchange = (e) => {
                 this.sortMode = e.target.value;
@@ -94,11 +87,41 @@ export const TrickLibrary = {
 
         if (this.domBulkToggle) this.domBulkToggle.onclick = () => this.setBulkUnlockMode(true);
         if (this.domBulkCancel) this.domBulkCancel.onclick = () => this.setBulkUnlockMode(false);
+
+        // 新增：用事件委派監聽清單裡的 checkbox 勾選狀態，同步記錄到 bulkSelectedIds，
+        // 這樣切換分類篩選重新渲染清單後，已經勾選過的招式仍然會保持勾選（不會被畫面重繪清空）。
+        if (this.domList) {
+            this.domList.addEventListener('change', (e) => {
+                if (!e.target.classList || !e.target.classList.contains('bulk-unlock-checkbox')) return;
+                const id = e.target.getAttribute('data-id');
+                if (e.target.checked) {
+                    this.bulkSelectedIds.add(id);
+                } else {
+                    this.bulkSelectedIds.delete(id);
+                }
+            });
+        }
+
+        // 新增：全選按鈕。範圍只限「目前篩選條件下看得到」的招式；
+        // 如果目前看到的全部都已經勾選了，再按一次會變成取消全選，否則就是把目前看到的全部勾起來。
+        if (this.domBulkSelectAll) {
+            this.domBulkSelectAll.onclick = () => {
+                const visible = this.getFilteredTricks();
+                const allSelected = visible.length > 0 && visible.every(t => this.bulkSelectedIds.has(t.id));
+                visible.forEach(t => {
+                    if (allSelected) {
+                        this.bulkSelectedIds.delete(t.id);
+                    } else {
+                        this.bulkSelectedIds.add(t.id);
+                    }
+                });
+                this.renderLibrary();
+            };
+        }
+
         if (this.domBulkConfirm) {
             this.domBulkConfirm.onclick = async () => {
-                if (!this.domList) return;
-                const checked = this.domList.querySelectorAll('.bulk-unlock-checkbox:checked');
-                const ids = Array.from(checked).map(cb => cb.getAttribute('data-id'));
+                const ids = Array.from(this.bulkSelectedIds);
 
                 if (ids.length === 0) {
                     alert('請至少勾選一個招式再確認解鎖！');
@@ -358,9 +381,8 @@ export const TrickLibrary = {
             window.AppController.refreshStableSelect();
         }
         
-        // 每次開啟彈窗都重置為一般瀏覽模式，收合排序選單，並初始化分類下拉選單清單選項
+        // 每次開啟彈窗都重置為一般瀏覽模式，並初始化分類下拉選單清單選項
         this.setBulkUnlockMode(false);
-        if (this.domSortOptions) this.domSortOptions.classList.add('hidden');
         this.initFilterOptions();
         
         this.renderLibrary(); 
@@ -369,12 +391,28 @@ export const TrickLibrary = {
     
     closeModal() { if (this.domLibraryModal) this.domLibraryModal.classList.add('hidden'); },
 
-    // 新增：切換一鍵解鎖模式（開啟時：只顯示未解鎖招式，並把次數顯示換成 checkbox）
+    // 切換一鍵解鎖模式（開啟時：只顯示未解鎖招式，並把次數顯示換成 checkbox）。
+    // 每次切換模式都重新開始一輪勾選，避免上一輪殘留的勾選狀態造成混淆。
     setBulkUnlockMode(enabled) {
         this.bulkUnlockMode = enabled;
+        this.bulkSelectedIds = new Set();
         if (this.domBulkActions) this.domBulkActions.classList.toggle('hidden', !enabled);
         if (this.domBulkToggle) this.domBulkToggle.classList.toggle('hidden', enabled);
         this.renderLibrary();
+    },
+
+    // 新增：取出「目前分類篩選 + 一鍵解鎖模式」條件下看得到的招式清單，
+    // renderLibrary() 與「全選」按鈕共用同一份篩選邏輯，確保兩邊看到的範圍一致。
+    getFilteredTricks() {
+        const selectedCat = this.domFilterCategory ? this.domFilterCategory.value : "";
+        const selectedSub = this.domFilterSubcategory ? this.domFilterSubcategory.value : "";
+
+        return this.tricks.filter(trick => {
+            const matchCat = !selectedCat || trick.category === selectedCat;
+            const matchSub = !selectedSub || trick.subcategory === selectedSub;
+            const matchLock = !this.bulkUnlockMode || !trick.isUnlocked;
+            return matchCat && matchSub && matchLock;
+        });
     },
 
     // 新增：批次解鎖。只標記為已解鎖，不動 totalCount/todayCount，
@@ -393,6 +431,9 @@ export const TrickLibrary = {
 
     // 新增：依照目前選定的排序邏輯排列招式清單。'default' 維持原本（分類）順序，
     // 其餘選項則在不影響原始資料的情況下，回傳一份排序過的複本。
+    // 修正：「練習次數：低到高」原本會讓未解鎖招式（總次數大多是 0）跟少數低次數的
+    // 已解鎖招式混在一起、卡在清單中間。改成一律把未解鎖招式放到最後面，
+    // 已解鎖的招式之間才照次數由低到高排列。
     applySortMode(list) {
         if (this.sortMode === 'default') return list;
 
@@ -402,7 +443,10 @@ export const TrickLibrary = {
                 sorted.sort((a, b) => b.totalCount - a.totalCount);
                 break;
             case 'count-asc':
-                sorted.sort((a, b) => a.totalCount - b.totalCount);
+                sorted.sort((a, b) => {
+                    if (a.isUnlocked !== b.isUnlocked) return (b.isUnlocked === true) - (a.isUnlocked === true);
+                    return a.totalCount - b.totalCount;
+                });
                 break;
             case 'unlocked-first':
                 sorted.sort((a, b) => (b.isUnlocked === true) - (a.isUnlocked === true));
@@ -417,19 +461,7 @@ export const TrickLibrary = {
     renderLibrary() {
         if (!this.domList) return;
 
-        // 取得當前下拉選單選中的篩選條件值
-        const selectedCat = this.domFilterCategory ? this.domFilterCategory.value : "";
-        const selectedSub = this.domFilterSubcategory ? this.domFilterSubcategory.value : "";
-
-        // 過濾出符合條件的招式；一鍵解鎖模式下只顯示尚未解鎖的招式
-        let filteredTricks = this.tricks.filter(trick => {
-            const matchCat = !selectedCat || trick.category === selectedCat;
-            const matchSub = !selectedSub || trick.subcategory === selectedSub;
-            const matchLock = !this.bulkUnlockMode || !trick.isUnlocked;
-            return matchCat && matchSub && matchLock;
-        });
-
-        filteredTricks = this.applySortMode(filteredTricks);
+        let filteredTricks = this.applySortMode(this.getFilteredTricks());
 
         if (filteredTricks.length === 0) {
             const emptyMsg = this.bulkUnlockMode ? '目前沒有可解鎖的招式了' : '找不到符合此分類的招式';
@@ -437,19 +469,19 @@ export const TrickLibrary = {
             return;
         }
 
-        // 渲染過濾後的清單
+        // 渲染過濾後的清單。未解鎖的招式不再用括弧文字標註，改用 .locked 樣式把底色調暗。
         this.domList.innerHTML = filteredTricks.map(trick => `
-            <div class="lib-item" style="${trick.isCustom ? 'border-left: 4px solid #e67e22; background-color: #fffaf5;' : ''}">
+            <div class="lib-item${trick.isUnlocked ? '' : ' locked'}" style="${trick.isCustom ? 'border-left: 4px solid #e67e22; background-color: #fffaf5;' : ''}">
                 <div>
                     <span style="font-size:0.72rem; background:#7f8c8d; color:white; padding:1px 4px; border-radius:3px; margin-right:4px;">
                         ${trick.category || '未分類'} › ${trick.subcategory || '未分類'}
                     </span>
                     <strong style="display:block; margin-top:3px; color:#2c3e50;">
-                        ${trick.name}${trick.isUnlocked ? '' : ' （未解鎖）'}
+                        ${trick.name}
                     </strong>
                 </div>
                 ${this.bulkUnlockMode
-                    ? `<input type="checkbox" class="bulk-unlock-checkbox" data-id="${trick.id}">`
+                    ? `<input type="checkbox" class="bulk-unlock-checkbox" data-id="${trick.id}" ${this.bulkSelectedIds.has(trick.id) ? 'checked' : ''}>`
                     : `<span class="lib-count-info">總計: ${trick.totalCount} 次</span>`
                 }
             </div>
