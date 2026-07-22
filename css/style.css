@@ -26,7 +26,7 @@ body {
     color: var(--text-main); 
     font-size: 15px; 
     line-height: 1.5;
-    padding-bottom: 85px;   /* 手機板維持原本留白 */
+    padding-bottom: 100px;   /* 手機板留白，避免內容被浮動的圓形按鈕蓋住 */
     -webkit-tap-highlight-color: transparent;
 }
 
@@ -43,7 +43,7 @@ body {
     justify-content: center;
     align-items: center;
     position: relative; /* 設為相對定位，以便子項目能精準定位到右下角 */
-    height: 90px;        /* 手機板維持原本高度 */
+    height: 112px;        /* 手機板放大標題區塊，讓選手資訊與切換帳號有比較大的範圍 */
 }
 
 .app-header h1 { 
@@ -62,26 +62,26 @@ body {
 .header-account-row {
     position: absolute;
     right: 16px;
-    bottom: 8px;
+    bottom: 12px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
 }
 
 .user-status { 
-    font-size: 1.05rem;              /* 選手字樣調大 */
+    font-size: 1.15rem;              /* 選手字樣調大 */
     color: rgba(255, 255, 255, 0.95); 
     font-weight: 700;
 }
 
-/* 切換帳號／帳號登入按鈕，放在選手文字右側、同一排，手機板維持較小尺寸避免壓到任何東西 */
+/* 切換帳號／帳號登入按鈕，放在選手文字右側、同一排，手機板放大範圍，方便點擊 */
 .header-account-btn {
     background-color: #ffffff;
     color: #14b8a6;
     border: none;
     border-radius: 999px;
-    padding: 3px 10px;      /* 手機板縮小按鈕，避免壓到任何東西 */
-    font-size: 0.68rem;     /* 手機板縮小文字 */
+    padding: 7px 16px;      /* 手機板放大按鈕範圍 */
+    font-size: 0.82rem;     /* 手機板放大文字 */
     font-weight: 700;
     cursor: pointer;
     white-space: nowrap;
@@ -96,7 +96,7 @@ body {
 .version-badge {
     position: absolute;
     left: 16px;
-    bottom: 8px;
+    bottom: 12px;
     background-color: rgba(255, 255, 255, 0.18);
     color: #ffffff;
     border: 1px solid rgba(255, 255, 255, 0.4);
@@ -190,10 +190,12 @@ body {
     gap: 8px;
 }
 
-/* 大分類／小分類／招式 三層連動選單：前兩項只依文字內容取寬度，第三項（招式）盡量伸展 */
+/* 大分類／小分類／招式 三層連動選單。
+   手機板：大分類與小分類同一排，招式選單換到下一排並佔滿寬度（見下方 nth-of-type(3)）。
+   電腦版（768px 以上）改成三個都在同一排，招式選單改用剩餘空間伸展，見對應媒體查詢覆寫。 */
 .trick-picker {
     display: flex;
-    flex-direction: row;
+    flex-wrap: wrap;
     gap: 6px;
 }
 
@@ -208,7 +210,7 @@ body {
 }
 
 .trick-picker select:nth-of-type(3) {
-    flex: 1 1 auto;
+    flex: 1 1 100%; /* 寬度大於同排剩餘空間，強制換到下一排並佔滿整排 */
 }
 
 /* ==========================================================================
@@ -460,26 +462,17 @@ input.today-count::-webkit-inner-spin-button {
     margin-bottom: 10px;
 }
 
-.bulk-unlock-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    margin-bottom: 8px;
-}
-
 .bulk-unlock-tip {
+    display: block;
     font-size: 0.8rem;
     color: #9a3412;
-    flex: 1;
+    margin-bottom: 8px;
+    text-align: center;
 }
 
-#btn-bulk-select-all {
-    width: auto;
-    height: 32px;
-    padding: 0 10px;
-    font-size: 0.8rem;
-    flex-shrink: 0;
+/* 全選本分類：獨立一顆按鈕，放在招式庫清單正上方 */
+.bulk-select-all-btn {
+    margin-bottom: 10px;
 }
 
 .bulk-unlock-buttons {
@@ -613,14 +606,19 @@ input.today-count::-webkit-inner-spin-button {
    ========================================================================== */
 .bottom-nav { 
     position: fixed; 
-    bottom: 0; left: 0; right: 0; 
-    height: 68px;               /* 手機板維持原本高度 */
+    left: 50%;
+    right: auto;
+    bottom: 14px;
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;        /* 底部的綠色改成圓形，貼合裡面的圓形按鈕 */
     background-color: #14b8a6; 
     display: flex; 
-    justify-content: center;  /* 只剩一顆按鈕，置中顯示 */
+    justify-content: center; 
     align-items: center; 
-    padding: 0 12px; 
-    box-shadow: 0 -4px 12px rgba(0,0,0,0.1); 
+    padding: 0; 
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18); 
+    transform: translateX(-50%);
     z-index: 999;
 }
 
@@ -737,12 +735,12 @@ input.today-count::-webkit-inner-spin-button {
 
     /* 以下僅套用於電腦版：頁首加高、切換帳號按鈕放大、版本號放大 */
     .app-header {
-        height: 96px;
+        height: 132px;
     }
 
     .header-account-btn {
-        padding: 6px 16px;      /* 電腦版：切換帳號按鈕放大 */
-        font-size: 0.82rem;
+        padding: 8px 20px;      /* 電腦版：切換帳號按鈕放大 */
+        font-size: 0.9rem;
     }
 
     .version-badge {
@@ -753,9 +751,11 @@ input.today-count::-webkit-inner-spin-button {
     /* 桌面上底部導覽列改成置中的浮動工具列，不用整條貼滿螢幕邊緣 */
     .bottom-nav {
         max-width: 500px;
+        width: auto;    /* 手機板改用固定寬度的圓形，電腦版恢復依內容自動決定寬度 */
         margin: 0 auto;
         left: 50%;
         right: auto;
+        bottom: 0;      /* 手機板改成懸浮偏移，電腦版恢復貼齊畫面底部 */
         transform: translateX(-50%);
         border-radius: 16px 16px 0 0;
         height: auto;
@@ -813,6 +813,15 @@ input.today-count::-webkit-inner-spin-button {
     #modal-library .modal-content {
         max-width: 620px;
     }
+
+    /* 較寬螢幕：大分類／小分類／招式三個選單都在同一排，招式選單改用剩餘空間伸展 */
+    .trick-picker {
+        flex-wrap: nowrap;
+    }
+
+    .trick-picker select:nth-of-type(3) {
+        flex: 1 1 auto;
+    }
 }
 
 /* 版本紀錄彈窗的「返回首頁」按鈕，跟招式庫彈窗一樣需要 flex-shrink:0，
@@ -840,7 +849,7 @@ input.today-count::-webkit-inner-spin-button {
     }
 
     .app-header {
-        height: 100px;
+        height: 140px;
     }
 }
 

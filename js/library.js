@@ -397,6 +397,7 @@ export const TrickLibrary = {
         this.bulkUnlockMode = enabled;
         this.bulkSelectedIds = new Set();
         if (this.domBulkActions) this.domBulkActions.classList.toggle('hidden', !enabled);
+        if (this.domBulkSelectAll) this.domBulkSelectAll.classList.toggle('hidden', !enabled);
         if (this.domBulkToggle) this.domBulkToggle.classList.toggle('hidden', enabled);
         this.renderLibrary();
     },
