@@ -97,6 +97,70 @@ export const TrickLibrary = {
             };
         }
 
+        // 新增：熟練招式「目標次數」自訂規則彈窗
+        this.domTargetRulesToggle = document.getElementById('btn-target-rules-toggle');
+        this.domTargetRulesModal = document.getElementById('modal-target-rules');
+        this.domTargetRulesList = document.getElementById('target-rules-list');
+        this.domTargetRuleAdd = document.getElementById('btn-target-rule-add');
+        this.domTargetRulesSave = document.getElementById('btn-target-rules-save');
+        this.domTargetRulesClose = document.getElementById('btn-target-rules-close');
+        this.workingTargetRules = []; // 編輯中的暫存規則，按下「儲存」才會真的寫入 localStorage
+
+        if (this.domTargetRulesToggle) this.domTargetRulesToggle.onclick = () => this.openTargetRulesModal();
+        if (this.domTargetRulesClose) {
+            this.domTargetRulesClose.onclick = () => {
+                if (this.domTargetRulesModal) this.domTargetRulesModal.classList.add('hidden');
+            };
+        }
+        if (this.domTargetRuleAdd) {
+            this.domTargetRuleAdd.onclick = () => {
+                const last = this.workingTargetRules[this.workingTargetRules.length - 1];
+                this.workingTargetRules.push({
+                    maxCount: last ? last.maxCount + 50 : 10,
+                    target: last ? last.target + 5 : 5
+                });
+                this.renderTargetRulesList();
+            };
+        }
+        if (this.domTargetRulesList) {
+            this.domTargetRulesList.addEventListener('click', (e) => {
+                const btn = e.target.closest('.btn-rule-delete');
+                if (!btn) return;
+                if (this.workingTargetRules.length <= 1) {
+                    alert('至少要保留一條規則！');
+                    return;
+                }
+                const index = parseInt(btn.getAttribute('data-index'), 10);
+                this.workingTargetRules.splice(index, 1);
+                this.renderTargetRulesList();
+            });
+        }
+        if (this.domTargetRulesSave) {
+            this.domTargetRulesSave.onclick = () => {
+                if (!this.domTargetRulesList) return;
+                const rows = this.domTargetRulesList.querySelectorAll('.target-rule-row');
+                const rules = Array.from(rows).map(row => ({
+                    maxCount: parseInt(row.querySelector('.rule-max-count').value, 10) || 0,
+                    target: parseInt(row.querySelector('.rule-target').value, 10) || 1
+                }));
+
+                if (rules.length === 0) {
+                    alert('至少要保留一條規則！');
+                    return;
+                }
+
+                this.workingTargetRules = this.saveTargetRules(rules);
+                this.renderTargetRulesList();
+
+                // 目標次數規則變了，主畫面「今日穩固招式」顯示的目標次數要跟著更新
+                if (window.AppController && typeof window.AppController.renderStableCard === 'function') {
+                    window.AppController.renderStableCard();
+                }
+
+                alert('已儲存！');
+            };
+        }
+
         if (this.domBulkToggle) this.domBulkToggle.onclick = () => this.setMode('bulk');
         if (this.domBulkCancel) this.domBulkCancel.onclick = () => this.setMode('none');
         if (this.domMasterToggle) this.domMasterToggle.onclick = () => this.setMode('master');
@@ -583,10 +647,10 @@ export const TrickLibrary = {
             return `
             <div class="${classes.join(' ')}" style="${trick.isCustom ? 'border-left: 4px solid #e67e22; background-color: #fffaf5;' : ''}">
                 <div>
-                    <span style="font-size:0.72rem; background:#7f8c8d; color:white; padding:1px 4px; border-radius:3px; margin-right:4px;">
+                    <span style="font-size:0.72rem; background:#7f8c8d; color:white; padding:1px 4px; border-radius:3px; margin-right:4px; display:inline-block; word-break:normal; white-space:normal;">
                         ${trick.category || '未分類'} › ${trick.subcategory || '未分類'}
                     </span>
-                    <strong style="display:block; margin-top:3px; color:#2c3e50;">
+                    <strong style="display:block; margin-top:3px; color:#2c3e50; word-break:normal; white-space:normal;">
                         ${trick.name}
                     </strong>
                 </div>
@@ -610,11 +674,74 @@ export const TrickLibrary = {
         return meta ? `${trick.name} (${meta})` : trick.name;
     },
 
-    getTargetCount(totalCount) { 
-        if (totalCount <= 10) return 3; 
-        if (totalCount <= 50) return 5; 
-        if (totalCount <= 100) return 10; 
-        return 20; 
+    // 新增：熟練招式「每日目標次數」規則，可由使用者自訂（存在瀏覽器 localStorage，跟裝置綁定）。
+    // 規則格式：[{ maxCount, target }, ...]，依 maxCount 由小到大排列；
+    // 累積次數落在某條規則的 maxCount 以內，就套用該條的 target；
+    // 超過所有規則的 maxCount，套用「最後一條」規則的 target。
+    // 這組預設值對應原本寫死在程式碼裡的規則（10 次內 3 下、50 次內 5 下、100 次內 10 下、超過 20 下）。
+    defaultTargetRules: [
+        { maxCount: 10, target: 3 },
+        { maxCount: 50, target: 5 },
+        { maxCount: 100, target: 10 },
+        { maxCount: 999999, target: 20 }
+    ],
+
+    getTargetRules() {
+        try {
+            const raw = localStorage.getItem('kendama_target_rules');
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    return [...parsed].sort((a, b) => a.maxCount - b.maxCount);
+                }
+            }
+        } catch (e) {
+            console.error('讀取自訂目標次數規則失敗:', e);
+        }
+        return this.defaultTargetRules;
+    },
+
+    saveTargetRules(rules) {
+        const sorted = [...rules].sort((a, b) => a.maxCount - b.maxCount);
+        try {
+            localStorage.setItem('kendama_target_rules', JSON.stringify(sorted));
+        } catch (e) {
+            console.error('儲存自訂目標次數規則失敗:', e);
+        }
+        return sorted;
+    },
+
+    // 新增：開啟「熟練招式目標次數設定」彈窗，把目前生效中的規則複製一份到暫存區編輯
+    openTargetRulesModal() {
+        this.workingTargetRules = this.getTargetRules().map(r => ({ ...r }));
+        this.renderTargetRulesList();
+        if (this.domTargetRulesModal) this.domTargetRulesModal.classList.remove('hidden');
+    },
+
+    // 新增：渲染目標次數規則清單，每一列都是「累積次數 ≤ X 次，每天目標 Y 次」，可直接編輯或刪除
+    renderTargetRulesList() {
+        if (!this.domTargetRulesList) return;
+
+        this.workingTargetRules = [...this.workingTargetRules].sort((a, b) => a.maxCount - b.maxCount);
+
+        this.domTargetRulesList.innerHTML = this.workingTargetRules.map((rule, index) => `
+            <div class="target-rule-row" data-index="${index}">
+                <span class="rule-label">累積次數在</span>
+                <input type="number" class="app-select rule-max-count" value="${rule.maxCount}" min="1">
+                <span class="rule-label">次以內，每天目標</span>
+                <input type="number" class="app-select rule-target" value="${rule.target}" min="1">
+                <span class="rule-label">次</span>
+                <button class="btn-rule-delete" data-index="${index}" type="button" aria-label="刪除">×</button>
+            </div>
+        `).join('');
+    },
+
+    getTargetCount(totalCount) {
+        const rules = this.getTargetRules();
+        for (const rule of rules) {
+            if (totalCount <= rule.maxCount) return rule.target;
+        }
+        return rules.length > 0 ? rules[rules.length - 1].target : 20;
     },
 
     updateCount(id, amount) {

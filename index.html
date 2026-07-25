@@ -153,6 +153,7 @@
             <div class="bulk-unlock-bar">
                 <button id="btn-bulk-unlock-toggle" class="btn-action secondary">一鍵解鎖模式</button>
                 <button id="btn-master-remove-toggle" class="btn-action secondary">移除熟練招式</button>
+                <button id="btn-target-rules-toggle" class="btn-action secondary">目標次數設定</button>
             </div>
             <div id="bulk-unlock-actions" class="bulk-unlock-actions hidden">
                 <span class="bulk-unlock-tip">勾選要解鎖的招式，再按下方按鈕確認</span>
@@ -180,6 +181,19 @@
 
             <div id="library-list" class="library-list"></div>
             <button id="btn-library-close" class="btn-action secondary">返回首頁</button>
+        </div>
+    </div>
+
+    <div id="modal-target-rules" class="modal hidden">
+        <div class="modal-content target-rules-content">
+            <h3>熟練招式目標次數設定</h3>
+            <p class="modal-tip">設定「累積練習次數」對應到的「每天目標次數」，由小到大排列；超過最後一條的累積次數，也會套用最後一條的目標次數。</p>
+            <div id="target-rules-list" class="target-rules-list"></div>
+            <button id="btn-target-rule-add" class="btn-action secondary">新增條目</button>
+            <div class="target-rules-actions">
+                <button id="btn-target-rules-save" class="btn-action success">儲存</button>
+                <button id="btn-target-rules-close" class="btn-action secondary">返回招式庫</button>
+            </div>
         </div>
     </div>
 

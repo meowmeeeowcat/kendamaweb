@@ -257,6 +257,69 @@ export const AppController = {
         }
     },
 
+    // 新增：解析招式 id（格式為「大分類序號_小分類序號_流水號」，例如 "1_1_1"）成數字陣列，方便比較順序
+    parseTrickId(id) {
+        return String(id).split('_').map(n => parseInt(n, 10));
+    },
+
+    // 新增：比較兩個招式 id 的順序（依序比較大分類、小分類、流水號）
+    compareTrickId(idA, idB) {
+        const a = this.parseTrickId(idA);
+        const b = this.parseTrickId(idB);
+        for (let i = 0; i < Math.max(a.length, b.length); i++) {
+            const diff = (a[i] || 0) - (b[i] || 0);
+            if (diff !== 0) return diff;
+        }
+        return 0;
+    },
+
+    // 新增：挑戰成功後，不要隨機換下一個挑戰招式，改成：
+    // 1. 優先找「同大分類、同小分類」裡緊接著的下一個流水號的未解鎖招式
+    // 2. 找不到的話，改成同大分類（不限小分類）裡 id 比剛解鎖的招式大的招式中，選 id 最小（最接近）的那個
+    // 3. 同大分類裡已經沒有更後面的招式了（例如剛好練到分類最後一個），就從同大分類最前面（id 最小）重新開始
+    // 4. 整個大分類都解鎖完了，才退回原本的隨機挑選邏輯，確保一定會抽到一個招式繼續練習
+    nextChallengeTrickAfterSuccess(unlockedTrick) {
+        if (!unlockedTrick || !TrickLibrary.tricks || TrickLibrary.tricks.length === 0) return;
+
+        const pool = this.getPoolForType('challenge'); // 未解鎖招式池
+        if (pool.length === 0) {
+            this.currentChallengeTrick = null;
+            this.renderChallengeCard();
+            this.refreshChallengeSelect();
+            return;
+        }
+
+        const [uCat, uSub, uSeq] = this.parseTrickId(unlockedTrick.id);
+
+        // 1. 同大分類、同小分類，流水號剛好 +1 的招式
+        let nextTrick = pool.find(t => {
+            const [cat, sub, seq] = this.parseTrickId(t.id);
+            return cat === uCat && sub === uSub && seq === uSeq + 1;
+        });
+
+        // 2. 同大分類裡，找 id 比目前大、且最接近的招式；如果都沒有比較大的，從同大分類最小 id 的招式重新開始
+        if (!nextTrick) {
+            const sameCategory = pool
+                .filter(t => this.parseTrickId(t.id)[0] === uCat)
+                .sort((a, b) => this.compareTrickId(a.id, b.id));
+
+            if (sameCategory.length > 0) {
+                nextTrick = sameCategory.find(t => this.compareTrickId(t.id, unlockedTrick.id) > 0) || sameCategory[0];
+            }
+        }
+
+        // 3. 同大分類完全沒有未解鎖的招式了，退回原本的隨機挑選邏輯
+        if (!nextTrick) {
+            this.nextChallengeTrick();
+            return;
+        }
+
+        this.historyChallengeIds.push(nextTrick.id);
+        this.currentChallengeTrick = nextTrick;
+        this.renderChallengeCard();
+        this.refreshChallengeSelect();
+    },
+
     // 「今日」次數改成 input 之後，讓使用者可以直接輸入數字，不用只能一直按 +/-。
     // 同時監聽 input 事件，使用者每打一個字，次數與下方統計就同步更新（不用等離開輸入框）。
     bindTodayInputEvents() {
@@ -343,8 +406,9 @@ export const AppController = {
                 this.refreshChallengeSelect();
 
                 // 先將資料渲染至「今日穩固」卡片中顯示剛才+1的狀態，再抽取下一輪挑戰
+                // 挑戰成功後不隨機換招式：優先留在同分類，接續下一個 id 的招式
                 this.renderStableCard(); 
-                this.nextChallengeTrick();
+                this.nextChallengeTrickAfterSuccess(unlockedTrick);
                 // 挑戰成功後次數也變動了，同步刷新主畫面上的今日練習統計
                 TrickLibrary.renderStatsSection();
             };

@@ -180,7 +180,7 @@ body {
     font-weight: bold; 
     color: var(--text-main); 
     word-break: normal;      /* 英文名字或分類不要從字母中間斷行，要整個換到下一行 */
-    overflow-wrap: break-word; /* 極少數超長、無空白可斷的字串才允許斷行，避免溢出容器 */
+    white-space: normal;     /* 確保一定允許換行，不會被其他樣式強制擠在同一行 */
 }
 
 /* 卡片內控制區 */
@@ -450,15 +450,19 @@ input.today-count::-webkit-inner-spin-button {
     flex: 1;
 }
 
-/* 一鍵解鎖模式 + 移除熟練招式：兩顆按鈕並排顯示 */
+/* 一鍵解鎖模式 + 移除熟練招式 + 目標次數設定：多顆按鈕並排顯示，窄螢幕自動換行 */
 .bulk-unlock-bar {
     display: flex;
+    flex-wrap: wrap;
     gap: 8px;
     margin-bottom: 10px;
 }
 
 .bulk-unlock-bar .btn-action {
-    flex: 1;
+    flex: 1 1 30%;
+    min-width: 100px;
+    font-size: 0.82rem;
+    padding: 0 6px;
 }
 
 .bulk-unlock-actions {
@@ -540,10 +544,10 @@ input.today-count::-webkit-inner-spin-button {
     opacity: 0.75;
 }
 
-/* 已熟練（被移出今日穩固招式）：用側邊顏色標示，跟自訂招式的橘色邊做出區隔 */
+/* 已熟練（被移出今日穩固招式）：用側邊顏色標示，沿用「今日穩固招式」卡片本來就在用的藍綠色 */
 .lib-item.mastered {
-    border-left: 4px solid #8b5cf6;
-    background-color: #faf5ff;
+    border-left: 4px solid var(--card-border-stable);
+    background-color: #e6fbf8;
 }
 
 .lib-item > div:first-child {
@@ -897,4 +901,68 @@ input.today-count::-webkit-inner-spin-button {
     .btn-count {
         width: 40px;
     }
+}
+
+/* ==========================================================================
+   9. 熟練招式目標次數設定 (Target Count Rules)
+   ========================================================================== */
+.target-rules-content {
+    text-align: left;
+}
+
+.target-rules-list {
+    max-height: 45vh;
+    overflow-y: auto;
+    margin: 8px 0 12px 0;
+}
+
+.target-rule-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 10px 4px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.target-rule-row .rule-label {
+    font-size: 0.85rem;
+    color: var(--text-main);
+    white-space: nowrap;
+}
+
+.target-rule-row .app-select {
+    width: 72px;
+    height: 36px;
+    padding: 0 8px;
+    text-align: center;
+}
+
+.btn-rule-delete {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    margin-left: auto;
+    border: none;
+    border-radius: 50%;
+    background-color: #fee2e2;
+    color: #b91c1c;
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+#btn-target-rule-add {
+    margin-bottom: 14px;
+    flex-shrink: 0;
+}
+
+.target-rules-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.target-rules-actions .btn-action {
+    flex: 1;
 }
