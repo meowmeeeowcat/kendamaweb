@@ -62,7 +62,7 @@ body {
 .header-account-row {
     position: absolute;
     right: 16px;
-    bottom: 12px;
+    bottom: 4px;    /* 手機板往下移一點 */
     display: flex;
     align-items: center;
     gap: 10px;
@@ -179,7 +179,8 @@ body {
     font-size: 1.25rem; 
     font-weight: bold; 
     color: var(--text-main); 
-    word-break: break-all;
+    word-break: normal;      /* 英文名字或分類不要從字母中間斷行，要整個換到下一行 */
+    overflow-wrap: break-word; /* 極少數超長、無空白可斷的字串才允許斷行，避免溢出容器 */
 }
 
 /* 卡片內控制區 */
@@ -449,9 +450,15 @@ input.today-count::-webkit-inner-spin-button {
     flex: 1;
 }
 
-/* 一鍵解鎖模式 */
+/* 一鍵解鎖模式 + 移除熟練招式：兩顆按鈕並排顯示 */
 .bulk-unlock-bar {
+    display: flex;
+    gap: 8px;
     margin-bottom: 10px;
+}
+
+.bulk-unlock-bar .btn-action {
+    flex: 1;
 }
 
 .bulk-unlock-actions {
@@ -470,9 +477,27 @@ input.today-count::-webkit-inner-spin-button {
     text-align: center;
 }
 
-/* 全選本分類：獨立一顆按鈕，放在招式庫清單正上方 */
-.bulk-select-all-btn {
+/* 全選：checkbox + 文字，放在招式庫清單正上方 */
+.bulk-select-all-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     margin-bottom: 10px;
+}
+
+.bulk-select-all-row label {
+    font-size: 0.9rem;
+    color: var(--text-main);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.bulk-select-all-checkbox {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    accent-color: var(--action-success);
+    cursor: pointer;
 }
 
 .bulk-unlock-buttons {
@@ -513,6 +538,12 @@ input.today-count::-webkit-inner-spin-button {
 .lib-item.locked {
     background-color: #eef1f4;
     opacity: 0.75;
+}
+
+/* 已熟練（被移出今日穩固招式）：用側邊顏色標示，跟自訂招式的橘色邊做出區隔 */
+.lib-item.mastered {
+    border-left: 4px solid #8b5cf6;
+    background-color: #faf5ff;
 }
 
 .lib-item > div:first-child {
@@ -736,6 +767,10 @@ input.today-count::-webkit-inner-spin-button {
     /* 以下僅套用於電腦版：頁首加高、切換帳號按鈕放大、版本號放大 */
     .app-header {
         height: 132px;
+    }
+
+    .header-account-row {
+        bottom: 12px;   /* 手機板往下移的調整只套用於手機板，電腦版維持原本位置 */
     }
 
     .header-account-btn {

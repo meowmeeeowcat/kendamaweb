@@ -62,13 +62,24 @@ export const AppController = {
         }
     },
 
+    // 新增：移除熟練招式完成後呼叫。若目前顯示的穩固招式剛好被移出了（標記為已熟練），
+    // 換一個新的穩固招式；否則只需要刷新選單（移出的招式要從手選清單中消失）。
+    onMasterRemoveDone() {
+        if (this.currentStableTrick && this.currentStableTrick.isMastered) {
+            this.nextStableTrick();
+        } else {
+            this.refreshStableSelect();
+        }
+    },
+
     // === 大分類 / 小分類 / 招式 三層連動選單 ===
-    // type 只會是 'stable'（今日穩固招式，招式池 = 已解鎖）或 'challenge'（新招式挑戰，招式池 = 未解鎖）
+    // type 只會是 'stable'（今日穩固招式，招式池 = 已解鎖且尚未標記為已熟練）
+    // 或 'challenge'（新招式挑戰，招式池 = 未解鎖）
 
     getPoolForType(type) {
         if (!TrickLibrary.tricks) return [];
         return type === 'stable'
-            ? TrickLibrary.tricks.filter(t => t.isUnlocked)
+            ? TrickLibrary.tricks.filter(t => t.isUnlocked && !t.isMastered)
             : TrickLibrary.tricks.filter(t => !t.isUnlocked);
     },
 
@@ -198,7 +209,7 @@ export const AppController = {
 
     nextStableTrick() {
         if (!TrickLibrary.tricks || TrickLibrary.tricks.length === 0) return;
-        const pool = TrickLibrary.tricks.filter(t => t.isUnlocked);
+        const pool = this.getPoolForType('stable');
         if (pool.length === 0) {
             this.currentStableTrick = null;
             this.renderStableCard();
@@ -223,7 +234,7 @@ export const AppController = {
 
     nextChallengeTrick() {
         if (!TrickLibrary.tricks || TrickLibrary.tricks.length === 0) return;
-        const pool = TrickLibrary.tricks.filter(t => !t.isUnlocked);
+        const pool = this.getPoolForType('challenge');
         if (pool.length === 0) {
             this.currentChallengeTrick = null;
             this.renderChallengeCard();
