@@ -21,7 +21,7 @@
         </div>
     </header>
 
-    <main class="app-content">
+    <main id="page-home" class="app-content app-page">
         <section class="card-section stats-section">
             <h2>今日練習統計</h2>
             <div id="stats-section-list" class="library-list stats-inline-list">
@@ -100,34 +100,8 @@
         </section>
     </main>
 
-    <nav class="bottom-nav">
-        <button id="btn-library-trigger" class="btn-library-main" type="button" aria-label="完整招式庫">
-            <span class="library-badge">
-                <span class="library-icon-wrap">
-                    <img src="images/library-icon.png" alt="完整招式庫" class="library-icon-img"
-                         onerror="this.style.display='none'; this.parentElement.classList.add('no-image');" />
-                </span>
-            </span>
-        </button>
-    </nav>
-
-    <div id="modal-login" class="modal hidden">
-        <div class="modal-content">
-            <h3>帳號登入</h3>
-            <p class="modal-tip">輸入您的獨特暱稱，系統將會為您在雲端保存專屬練習紀錄。</p>
-            <input type="text" id="login-username" placeholder="請輸入您的暱稱 (例如: 貓貓)">
-            <div class="modal-actions">
-                <button id="btn-login-submit" class="btn-action success">登入</button>
-                <button id="btn-login-close" class="btn-action secondary">取消</button>
-            </div>
-            <button id="btn-logout" class="btn-action logout hidden">登出（回到訪客模式）</button>
-        </div>
-    </div>
-
-    <div id="modal-library" class="modal hidden">
-        <div class="modal-content library-content">
-            <h3>完整招式庫</h3>
-            
+    <section id="page-library" class="app-content app-page hidden">
+        <div class="page-card">
             <div class="filter-group">
                 <select id="filter-category" class="app-select">
                     <option value="">全部大分類</option>
@@ -180,7 +154,110 @@
             </div>
 
             <div id="library-list" class="library-list"></div>
-            <button id="btn-library-close" class="btn-action secondary">返回首頁</button>
+        </div>
+    </section>
+
+    <section id="page-combo" class="app-content app-page hidden">
+        <div class="page-placeholder">
+            <h2>串招</h2>
+            <p>功能開發中，敬請期待。</p>
+        </div>
+    </section>
+
+    <section id="page-battle" class="app-content app-page hidden">
+        <h2 class="page-title">對戰</h2>
+
+        <div id="battle-stage-input" class="page-card">
+            <p class="modal-tip">輸入對方的暱稱，系統會比對雙方的招式庫，篩選出可以拿來對戰的招式。</p>
+            <input type="text" id="battle-opponent-input" placeholder="請輸入對方的暱稱 (例如: 貓貓)">
+            <div id="battle-input-error" class="battle-error"></div>
+            <button id="btn-battle-start" class="btn-action success">開始比對</button>
+        </div>
+
+        <div id="battle-stage-select" class="page-card hidden">
+            <div class="battle-legend">
+                <span><i class="battle-legend-dot battle-legend-me"></i>你</span>
+                <span><i class="battle-legend-dot battle-legend-opp"></i><span id="battle-opp-name-label-1">對手</span></span>
+            </div>
+            <div class="battle-hp-config">
+                <label for="battle-hp-input" class="sort-label">雙方血量（用 ken 的血量顆數計算，扣到 0 就輸了）</label>
+                <input type="number" id="battle-hp-input" class="app-select" value="3" min="1" max="10">
+            </div>
+            <div class="filter-group">
+                <select id="battle-filter-category" class="app-select">
+                    <option value="">全部大分類</option>
+                </select>
+                <select id="battle-filter-subcategory" class="app-select">
+                    <option value="">全部小分類</option>
+                </select>
+            </div>
+            <div id="battle-trick-list" class="library-list battle-trick-list"></div>
+            <div id="battle-select-summary" class="battle-select-summary">已選擇 0 個招式</div>
+            <button id="btn-battle-confirm" class="btn-action success">確認招式，開始對戰</button>
+        </div>
+
+        <div id="battle-stage-play" class="page-card hidden">
+            <div class="battle-play-header">
+                <div class="battle-side-block">
+                    <span class="battle-side-label battle-side-me">你</span>
+                    <div class="battle-hp-dots" id="battle-my-hp"></div>
+                </div>
+                <span class="battle-vs">VS</span>
+                <div class="battle-side-block">
+                    <span class="battle-side-label battle-side-opp" id="battle-opp-name-label-2">對手</span>
+                    <div class="battle-hp-dots" id="battle-opp-hp"></div>
+                </div>
+            </div>
+            <div id="battle-draw-result" class="battle-draw-result">按下方按鈕抽招式</div>
+            <div id="battle-result-message" class="battle-result-message hidden"></div>
+            <div id="battle-round-actions" class="battle-round-actions">
+                <button id="btn-battle-miss-me" class="btn-action secondary">你沒接到 (-1)</button>
+                <button id="btn-battle-both-success" class="btn-action success">雙方都接到，抽下一招</button>
+                <button id="btn-battle-miss-opp" class="btn-action secondary">對方沒接到 (-1)</button>
+            </div>
+            <button id="btn-battle-restart" class="btn-action secondary">重新開始（換對手）</button>
+        </div>
+    </section>
+
+    <section id="page-links" class="app-content app-page hidden">
+        <div class="page-placeholder">
+            <h2>常用連結</h2>
+            <p>功能開發中，敬請期待。</p>
+        </div>
+    </section>
+
+    <nav class="bottom-toolbar" id="bottom-toolbar">
+        <button class="toolbar-btn" id="btn-nav-library" data-page="library" type="button">
+            <span class="toolbar-icon">
+                <img src="images/library-icon.png" alt=""
+                     onerror="this.style.display='none'; this.parentElement.classList.add('no-image');" />
+            </span>
+            <span class="toolbar-label">招式庫</span>
+        </button>
+        <button class="toolbar-btn" id="btn-nav-combo" data-page="combo" type="button">
+            <span class="toolbar-label">串招</span>
+        </button>
+        <button class="toolbar-btn toolbar-btn-home" id="btn-nav-home" data-page="home" type="button">
+            <span class="toolbar-home-circle">首頁</span>
+        </button>
+        <button class="toolbar-btn" id="btn-nav-battle" data-page="battle" type="button">
+            <span class="toolbar-label">對戰</span>
+        </button>
+        <button class="toolbar-btn" id="btn-nav-links" data-page="links" type="button">
+            <span class="toolbar-label">常用連結</span>
+        </button>
+    </nav>
+
+    <div id="modal-login" class="modal hidden">
+        <div class="modal-content">
+            <h3>帳號登入</h3>
+            <p class="modal-tip">輸入您的獨特暱稱，系統將會為您在雲端保存專屬練習紀錄。</p>
+            <input type="text" id="login-username" placeholder="請輸入您的暱稱 (例如: 貓貓)">
+            <div class="modal-actions">
+                <button id="btn-login-submit" class="btn-action success">登入</button>
+                <button id="btn-login-close" class="btn-action secondary">取消</button>
+            </div>
+            <button id="btn-logout" class="btn-action logout hidden">登出（回到訪客模式）</button>
         </div>
     </div>
 

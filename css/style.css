@@ -26,7 +26,7 @@ body {
     color: var(--text-main); 
     font-size: 15px; 
     line-height: 1.5;
-    padding-bottom: 100px;   /* 手機板留白，避免內容被浮動的圓形按鈕蓋住 */
+    padding-bottom: 84px;   /* 手機板留白，避免內容被底部工具列蓋住 */
     -webkit-tap-highlight-color: transparent;
 }
 
@@ -121,6 +121,52 @@ body {
     margin: 0 auto; 
 }
 
+/* 新增：頁面系統。每個 <main>/<section class="app-page"> 是一個獨立頁面，
+   同時間只會有一個沒有 .hidden，由 app.js 的 showPage() 負責切換。 */
+.app-page.hidden {
+    display: none;
+}
+
+.page-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+.page-card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    margin-bottom: 16px;
+}
+
+.page-placeholder {
+    background-color: #ffffff;
+    border-radius: 12px;
+    padding: 48px 20px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    margin-bottom: 16px;
+}
+
+.page-placeholder h2 {
+    font-size: 1.2rem;
+    color: var(--text-main);
+    margin-bottom: 8px;
+}
+
+.page-placeholder p {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.page-back-btn {
+    margin-top: 4px;
+}
+
 .card-section { 
     margin-bottom: 24px; 
 }
@@ -180,7 +226,7 @@ body {
     font-weight: bold; 
     color: var(--text-main); 
     word-break: normal;      /* 英文名字或分類不要從字母中間斷行，要整個換到下一行 */
-    white-space: normal;     /* 確保一定允許換行，不會被其他樣式強制擠在同一行 */
+    white-space: pre-line;   /* 保留 formatTrickLabel() 插入的強制換行(\n)，同時仍允許一般文字換行 */
 }
 
 /* 卡片內控制區 */
@@ -525,6 +571,11 @@ input.today-count::-webkit-inner-spin-button {
     border-radius: 8px;
 }
 
+/* 招式庫頁面：清單限定在頁面內，捲動條顯示在清單旁邊，不讓內容凸出頁面 */
+#page-library .library-list {
+    max-height: 55vh;
+}
+
 .lib-item { 
     padding: 12px; 
     border-bottom: 1px solid #f1f5f9; 
@@ -637,84 +688,92 @@ input.today-count::-webkit-inner-spin-button {
 }
 
 /* ==========================================================================
-   7. 底部固定導覽列 (Bottom Navigation Bar)
+   7. 底部工具列 (Bottom Toolbar) — 招式庫／串招／對戰／常用連結
    ========================================================================== */
-.bottom-nav { 
-    position: fixed; 
-    left: 50%;
-    right: auto;
-    bottom: 14px;
-    width: 76px;
-    height: 76px;
-    border-radius: 50%;        /* 底部的綠色改成圓形，貼合裡面的圓形按鈕 */
-    background-color: #14b8a6; 
-    display: flex; 
-    justify-content: center; 
-    align-items: center; 
-    padding: 0; 
-    box-shadow: 0 4px 14px rgba(0,0,0,0.18); 
-    transform: translateX(-50%);
+.bottom-toolbar {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    height: 64px;
+    background-color: #ffffff;
+    display: flex;
+    border-top: 1px solid #e5e7eb;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.06);
     z-index: 999;
 }
 
-/* 完整招式庫按鈕：純圖示的圓形按鈕（不含文字），手機板尺寸較小 */
-.btn-library-main {
-    width: 56px;
-    height: 56px;
+.toolbar-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    background: none;
     border: none;
-    border-radius: 50%;
-    background-color: #ffffff;
-    color: #14b8a6;
     cursor: pointer;
+    color: var(--text-muted);
+    padding: 6px 4px;
+}
+
+.toolbar-btn.active {
+    color: var(--primary-color);
+}
+
+.toolbar-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.12);
-}
-
-.btn-library-main:active {
-    transform: scale(0.96);
-}
-
-.btn-library-main:active .library-badge {
-    transform: scale(0.97);
-}
-
-/* 手機板：圓形照片 */
-.library-badge {
-    position: relative;
-    width: 44px;
-    height: 44px;
-    flex-shrink: 0;
-    transition: transform 0.1s;
-}
-
-.library-icon-wrap {
-    position: static;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
     overflow: hidden;
     background-color: #e6fbf8;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 2px solid #14b8a6;
+    border: 1.5px solid currentColor;
 }
 
-.library-icon-wrap.no-image::before {
-    content: "招";
-    font-size: 1.1rem;
-    font-weight: bold;
-    color: #14b8a6;
-}
-
-.library-icon-img {
+.toolbar-icon img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
+}
+
+.toolbar-icon.no-image::before {
+    content: "招";
+    font-size: 0.7rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.toolbar-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+/* 正中間的「首頁」按鈕：獨立的圓形樣式，懸浮在工具列上方，跟左右四個頁籤做出區隔 */
+.toolbar-btn-home {
+    justify-content: flex-start;
+    padding-top: 0;
+}
+
+.toolbar-home-circle {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    box-shadow: 0 4px 10px rgba(20, 184, 166, 0.4);
+    transform: translateY(-14px);
+    border: 3px solid #ffffff;
+}
+
+.toolbar-btn-home.active .toolbar-home-circle {
+    background-color: #0f9c8c;
 }
 
 /* ==========================================================================
@@ -787,70 +846,47 @@ input.today-count::-webkit-inner-spin-button {
         font-size: 1rem;
     }
 
-    /* 桌面上底部導覽列改成置中的浮動工具列，不用整條貼滿螢幕邊緣 */
-    .bottom-nav {
+    /* 桌面上底部工具列改成置中的浮動工具列，不用整條貼滿螢幕邊緣 */
+    .bottom-toolbar {
         max-width: 500px;
-        width: auto;    /* 手機板改用固定寬度的圓形，電腦版恢復依內容自動決定寬度 */
         margin: 0 auto;
         left: 50%;
         right: auto;
-        bottom: 0;      /* 手機板改成懸浮偏移，電腦版恢復貼齊畫面底部 */
         transform: translateX(-50%);
         border-radius: 16px 16px 0 0;
-        height: auto;
-        min-height: 110px;
-        padding: 14px 12px;
-        overflow: visible;   /* 讓浮出的圓形按鈕可以露出導覽列上緣 */
+        border: 1px solid #e5e7eb;
+        border-bottom: none;
+        height: 72px;
     }
 
-    /* 以下僅套用於電腦版：完整招式庫改為圓形按鈕，懸浮在畫面上，文字置於上方 90 度弧形範圍內 */
-    .btn-library-main {
-        width: 144px;
-        height: 144px;
-        border-radius: 50%;          /* 按鈕外框變成一個圓 */
-        background-color: #ffffff;
-        border: 3px solid #14b8a6;
-        box-shadow: 0 12px 26px rgba(0, 0, 0, 0.28);
-        padding: 0;
-        gap: 0;
-        position: relative;
-        transform: translateY(-38px); /* 讓按鈕懸浮在導覽列上方（按鈕放大後同步調整浮出高度） */
+    .toolbar-icon {
+        width: 26px;
+        height: 26px;
     }
 
-    .btn-library-main:active {
-        transform: translateY(-38px) scale(0.97);
+    .toolbar-home-circle {
+        width: 58px;
+        height: 58px;
+        font-size: 0.85rem;
+        transform: translateY(-16px);
     }
 
-    .btn-library-main:active .library-badge {
-        transform: none;
-    }
-
-    .library-badge {
-        width: 100%;
-        height: 100%;
-    }
-
-    .library-icon-wrap {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 116px;   /* 按鈕內已不再需要保留文字空間，白圓可以再放大填滿 */
-        height: 116px;
-        border: 3px solid #ffffff;
-        box-shadow: 0 3px 8px rgba(0,0,0,0.2);
-    }
-
-    .library-icon-wrap.no-image::before {
-        font-size: 2.4rem;
+    .toolbar-label {
+        font-size: 0.78rem;
     }
 
     .modal-content {
         max-width: 480px;
     }
 
-    #modal-library .modal-content {
-        max-width: 620px;
+    #page-library {
+        width: 60vw;
+        min-width: 600px;
+        max-width: 960px;
+    }
+
+    #page-library .library-list {
+        max-height: 60vh;
     }
 
     /* 較寬螢幕：大分類／小分類／招式三個選單都在同一排，招式選單改用剩餘空間伸展 */
@@ -965,4 +1001,214 @@ input.today-count::-webkit-inner-spin-button {
 
 .target-rules-actions .btn-action {
     flex: 1;
+}
+
+/* ==========================================================================
+   10. 對戰 (Battle)
+   ========================================================================== */
+#battle-opponent-input {
+    width: 100%;
+    height: 42px;
+    padding: 0 12px;
+    border: 1px solid #cdd5df;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    color: var(--text-main);
+    margin: 10px 0;
+    box-sizing: border-box;
+}
+
+.battle-error {
+    min-height: 20px;
+    font-size: 0.82rem;
+    color: #b91c1c;
+    margin-bottom: 8px;
+}
+
+.battle-legend {
+    display: flex;
+    gap: 16px;
+    font-size: 0.85rem;
+    color: var(--text-main);
+    margin-bottom: 10px;
+}
+
+.battle-legend-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 4px;
+}
+
+.battle-legend-me {
+    background-color: var(--card-border-stable);
+}
+
+.battle-legend-opp {
+    background-color: var(--card-border-challenge);
+}
+
+.battle-trick-list {
+    max-height: 45vh;
+}
+
+.battle-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 8px;
+    border-bottom: 1px solid #f1f5f9;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    background-color: #ffffff;
+}
+
+.battle-item.side-mastered { border-left-color: var(--card-border-stable); }
+.battle-item.side-unlocked { border-left-color: #99e6da; }
+
+.battle-item.opp-mastered { border-right-color: var(--card-border-challenge); }
+.battle-item.opp-unlocked { border-right-color: #a8e0f0; }
+
+.battle-checkbox {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    accent-color: var(--action-success);
+    cursor: pointer;
+}
+
+.battle-item-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.battle-group-tag {
+    font-size: 0.72rem;
+    background: #7f8c8d;
+    color: white;
+    padding: 1px 4px;
+    border-radius: 3px;
+    display: inline-block;
+    margin-bottom: 3px;
+}
+
+.battle-item-info strong {
+    display: block;
+    color: #2c3e50;
+    word-break: normal;
+    white-space: pre-line;
+}
+
+.battle-select-summary {
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin: 10px 0;
+}
+
+/* 血量設定（選招式階段） */
+.battle-hp-config {
+    margin-bottom: 10px;
+}
+
+.battle-hp-config .app-select {
+    width: 100px;
+    margin-top: 6px;
+}
+
+.battle-play-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.battle-side-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.battle-side-label {
+    font-size: 1.1rem;
+    font-weight: 700;
+    padding: 6px 16px;
+    border-radius: 999px;
+    color: #ffffff;
+}
+
+.battle-side-me {
+    background-color: var(--card-border-stable);
+}
+
+.battle-side-opp {
+    background-color: var(--card-border-challenge);
+}
+
+/* 血量顯示：用 ken 的血量顆數概念，圓點代表每一滴血，扣掉的血量用空心點表示 */
+.battle-hp-dots {
+    display: flex;
+    gap: 4px;
+}
+
+.hp-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--text-muted);
+}
+
+.battle-side-block:first-child .hp-dot.filled {
+    background-color: var(--card-border-stable);
+    border-color: var(--card-border-stable);
+}
+
+.battle-side-block:last-child .hp-dot.filled {
+    background-color: var(--card-border-challenge);
+    border-color: var(--card-border-challenge);
+}
+
+.hp-dot.empty {
+    background-color: transparent;
+}
+
+.battle-vs {
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
+.battle-draw-result {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 28px 16px;
+    text-align: center;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text-main);
+    white-space: pre-line;
+    word-break: normal;
+    margin-bottom: 16px;
+}
+
+.battle-result-message {
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 16px;
+}
+
+.battle-round-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+#btn-battle-restart {
+    margin-top: 8px;
 }

@@ -40,9 +40,6 @@ export const TrickLibrary = {
     },
 
     async init() {
-        this.domLibraryModal = document.getElementById('modal-library');
-        this.domTrigger = document.getElementById('btn-library-trigger');
-        this.domClose = document.getElementById('btn-library-close');
         this.domList = document.getElementById('library-list');
         
         // 新增：取得篩選 DOM 節點
@@ -53,8 +50,8 @@ export const TrickLibrary = {
         // 不再需要開關彈窗，只需要抓到主畫面上的清單容器並隨時重新渲染即可。
         this.domStatsList = document.getElementById('stats-section-list');
 
-        if (this.domTrigger) this.domTrigger.onclick = () => this.openModal();
-        if (this.domClose) this.domClose.onclick = () => this.closeModal();
+        // 招式庫改成獨立頁面後，頁面的顯示／隱藏交給 app.js 的頁面切換邏輯處理；
+        // 這裡的 onEnterLibraryPage() 只負責「每次切換進招式庫頁面時」要重新整理的內容。
 
         // 新增：綁定篩選選單切換事件
         if (this.domFilterCategory) {
@@ -136,7 +133,7 @@ export const TrickLibrary = {
             });
         }
         if (this.domTargetRulesSave) {
-            this.domTargetRulesSave.onclick = () => {
+            this.domTargetRulesSave.onclick = async () => {
                 if (!this.domTargetRulesList) return;
                 const rows = this.domTargetRulesList.querySelectorAll('.target-rule-row');
                 const rules = Array.from(rows).map(row => ({
@@ -149,15 +146,15 @@ export const TrickLibrary = {
                     return;
                 }
 
-                this.workingTargetRules = this.saveTargetRules(rules);
-                this.renderTargetRulesList();
+                this.workingTargetRules = await this.saveTargetRules(rules);
 
                 // 目標次數規則變了，主畫面「今日穩固招式」顯示的目標次數要跟著更新
                 if (window.AppController && typeof window.AppController.renderStableCard === 'function') {
                     window.AppController.renderStableCard();
                 }
 
-                alert('已儲存！');
+                // 不跳提示框，直接關閉頁面當作「已儲存」的提醒
+                if (this.domTargetRulesModal) this.domTargetRulesModal.classList.add('hidden');
             };
         }
 
@@ -278,6 +275,8 @@ export const TrickLibrary = {
     resetLocalTricks() {
         this.tricks = JSON.parse(JSON.stringify(this.defaultTricks));
         this.historyData = {};
+        // 訪客模式（未登入）沒有雲端帳號，讀回這台裝置上次存過的規則；沒存過就是 null（套用預設值）
+        this.targetRules = this.loadGuestTargetRules();
     },
 
     // 新增：動態生成大分類與小分類選單選項
@@ -396,6 +395,11 @@ export const TrickLibrary = {
                 const todayLogs = (daySnap.exists() && daySnap.data().logs) ? daySnap.data().logs : {};
                 this.historyData = { [todayDate]: todayLogs };
 
+                // 目標次數規則跟著帳號走：有存過就用雲端的，沒有就是 null（getTargetRules() 會自動套用預設值）
+                this.targetRules = Array.isArray(cloudData.targetRules) && cloudData.targetRules.length > 0
+                    ? cloudData.targetRules
+                    : null;
+
                 this.tricks = this.defaultTricks.map(dt => {
                     const ct = cloudTricks[dt.id];
                     const todayEntry = todayLogs[dt.id];
@@ -466,7 +470,8 @@ export const TrickLibrary = {
             // 直接覆寫可以避免舊版「已改回預設值」的招式一直殘留在雲端。
             await setDoc(userDocRef, {
                 tricks: tricksMap,
-                customTricks: customTricksArray
+                customTricks: customTricksArray,
+                targetRules: Array.isArray(this.targetRules) && this.targetRules.length > 0 ? this.targetRules : []
             });
 
             if (hasTodayData) {
@@ -475,6 +480,32 @@ export const TrickLibrary = {
             }
         } catch (e) {
             console.error("同步至 Firebase 失敗:", e);
+        }
+    },
+
+    // 新增：給「對戰」功能用的唯讀查詢。取得指定暱稱的使用者目前每個招式的解鎖／熟練狀態快照，
+    // 不會動到 this.tricks 等任何本地狀態。找不到這個使用者就回傳 null。
+    async fetchUserTricksSnapshot(username) {
+        if (!username) return null;
+        try {
+            const userDocRef = doc(db, "users", username);
+            const userSnap = await getDoc(userDocRef);
+            if (!userSnap.exists()) return null;
+
+            const cloudData = userSnap.data();
+            const { tricks: cloudTricks } = this.migrateLegacyTricksIfNeeded(cloudData.tricks);
+
+            return this.defaultTricks.map(dt => ({
+                id: dt.id,
+                name: dt.name,
+                category: dt.category,
+                subcategory: dt.subcategory,
+                isUnlocked: cloudTricks[dt.id] && cloudTricks[dt.id].isUnlocked !== undefined ? cloudTricks[dt.id].isUnlocked : dt.isUnlocked,
+                isMastered: !!(cloudTricks[dt.id] && cloudTricks[dt.id].isMastered)
+            }));
+        } catch (e) {
+            console.error("讀取對手招式庫失敗:", e);
+            return null;
         }
     },
 
@@ -504,20 +535,17 @@ export const TrickLibrary = {
         this.domStatsList.innerHTML = htmlContent || `<div class="empty-tip">今日暫無有效練習數據</div>`;
     },
 
-    openModal() {
+    // 招式庫改成獨立頁面後，這個函式改由 app.js 的頁面切換邏輯在「每次切換進招式庫頁面」時呼叫，
+    // 負責重置為一般瀏覽模式、重新整理分類篩選選單與清單內容。頁面本身的顯示／隱藏交給頁面路由處理。
+    onEnterLibraryPage() {
         if (window.AppController && typeof window.AppController.refreshStableSelect === 'function') {
             window.AppController.refreshStableSelect();
         }
         
-        // 每次開啟彈窗都重置為一般瀏覽模式，並初始化分類下拉選單清單選項
         this.setMode('none');
         this.initFilterOptions();
-        
         this.renderLibrary(); 
-        if (this.domLibraryModal) this.domLibraryModal.classList.remove('hidden'); 
     },
-    
-    closeModal() { if (this.domLibraryModal) this.domLibraryModal.classList.add('hidden'); },
 
     // 切換目前的操作模式：'none'（一般瀏覽）／'bulk'（一鍵解鎖）／'master'（移除熟練招式）。
     // 兩種勾選模式互斥，切換到任何一種都會重新開始一輪勾選，避免殘留勾選狀態造成混淆。
@@ -668,17 +696,24 @@ export const TrickLibrary = {
     // 新增：統一產生「招式名稱 (大分類/小分類)」的顯示字串。
     // 原本 app.js 直接寫 `${t.category || ''}/${t.subcategory || ''}`，
     // 當兩者皆為空時會顯示成不好看的 "招式名稱 ()" 或 "招式名稱 (/)"。
+    // 修正：招式名稱本身常常已經包含很長的英文翻譯（例如 "一迴燈台離轉收 (1 turn lighthouse, trade kenflip spike)"），
+    // 接在後面的分類資訊很容易被擠在同一行、看起來像被切掉。改成在名稱後面插入強制換行字元 \n，
+    // 配合 CSS 的 white-space: pre-line，分類資訊一定會另起一行，不會跟名稱擠在一起。
     formatTrickLabel(trick) {
         if (!trick) return '';
         const meta = [trick.category, trick.subcategory].filter(Boolean).join('/');
-        return meta ? `${trick.name} (${meta})` : trick.name;
+        return meta ? `${trick.name}\n(${meta})` : trick.name;
     },
 
-    // 新增：熟練招式「每日目標次數」規則，可由使用者自訂（存在瀏覽器 localStorage，跟裝置綁定）。
+    // 新增：熟練招式「每日目標次數」規則，可由使用者自訂。
     // 規則格式：[{ maxCount, target }, ...]，依 maxCount 由小到大排列；
     // 累積次數落在某條規則的 maxCount 以內，就套用該條的 target；
     // 超過所有規則的 maxCount，套用「最後一條」規則的 target。
     // 這組預設值對應原本寫死在程式碼裡的規則（10 次內 3 下、50 次內 5 下、100 次內 10 下、超過 20 下）。
+    //
+    // 修正：規則要「跟著帳號走」而不是跟著裝置走，所以改成主要存在 Firebase 使用者資料裡
+    // （this.targetRules 由 loadUserProgress() 從雲端讀回、saveUserProgress() 一併存回去）。
+    // 沒有登入的訪客模式沒有雲端帳號可以同步，才退而求其次存在這台裝置的 localStorage。
     defaultTargetRules: [
         { maxCount: 10, target: 3 },
         { maxCount: 50, target: 5 },
@@ -686,28 +721,49 @@ export const TrickLibrary = {
         { maxCount: 999999, target: 20 }
     ],
 
+    targetRules: null, // null 代表沿用預設值；有登入時由雲端資料載入，訪客模式由 localStorage 載入
+
     getTargetRules() {
-        try {
-            const raw = localStorage.getItem('kendama_target_rules');
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed) && parsed.length > 0) {
-                    return [...parsed].sort((a, b) => a.maxCount - b.maxCount);
-                }
-            }
-        } catch (e) {
-            console.error('讀取自訂目標次數規則失敗:', e);
+        if (Array.isArray(this.targetRules) && this.targetRules.length > 0) {
+            return [...this.targetRules].sort((a, b) => a.maxCount - b.maxCount);
         }
         return this.defaultTargetRules;
     },
 
-    saveTargetRules(rules) {
-        const sorted = [...rules].sort((a, b) => a.maxCount - b.maxCount);
+    // 讀取訪客模式（未登入）存在這台裝置上的規則，登入時不會使用這份資料
+    loadGuestTargetRules() {
         try {
-            localStorage.setItem('kendama_target_rules', JSON.stringify(sorted));
+            const raw = localStorage.getItem('kendama_target_rules_guest');
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+            }
         } catch (e) {
-            console.error('儲存自訂目標次數規則失敗:', e);
+            console.error('讀取訪客目標次數規則失敗:', e);
         }
+        return null;
+    },
+
+    // 儲存規則：有登入就存回 Firebase（跟著帳號走，換裝置也看得到）；
+    // 訪客模式沒有帳號，只能存在這台裝置的 localStorage 作為退而求其次的作法。
+    async saveTargetRules(rules) {
+        const sorted = [...rules].sort((a, b) => a.maxCount - b.maxCount);
+        this.targetRules = sorted;
+
+        if (window.currentUser) {
+            if (this._saveTimer) {
+                clearTimeout(this._saveTimer);
+                this._saveTimer = null;
+            }
+            await this.saveUserProgress(window.currentUser);
+        } else {
+            try {
+                localStorage.setItem('kendama_target_rules_guest', JSON.stringify(sorted));
+            } catch (e) {
+                console.error('儲存訪客目標次數規則失敗:', e);
+            }
+        }
+
         return sorted;
     },
 

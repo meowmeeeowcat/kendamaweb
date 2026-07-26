@@ -2,6 +2,7 @@
 import { AuthSystem } from "./auth.js";
 import { TrickLibrary } from "./library.js";
 import { VersionInfo } from "./version.js";
+import { BattleSystem } from "./battle.js";
 
 export const AppController = {
     currentStableTrick: null,
@@ -16,12 +17,18 @@ export const AppController = {
         AuthSystem.init(); 
         // 初始化版本資訊顯示
         VersionInfo.init();
+        // 初始化對戰系統
+        BattleSystem.init();
         
         // 確保綁定事件
         this.bindCounterEvents();
         this.bindActionEvents();
         this.bindSelectEvents();
         this.bindTodayInputEvents();
+
+        // 新增：底部工具列（招式庫／串招／對戰／常用連結）改成切換整頁，不再是浮動彈窗
+        this.bindPageNavigation();
+        this.showPage('home');
 
         // 使用者關閉分頁或切換到背景前，把還在 debounce 等待中的次數盡量送出，
         // 避免最後幾下 +1 因為還沒到 800ms 就被使用者關掉頁面而遺失。
@@ -35,6 +42,34 @@ export const AppController = {
         });
         
         window.AppController = this;
+    },
+
+    // 新增：底部工具列導覽。目前有五個頁面：招式庫、串招、首頁（工具列正中間）、對戰、常用連結。
+    // 串招／常用連結目前只是佔位頁面，之後再補上實際功能邏輯。
+    bindPageNavigation() {
+        document.querySelectorAll('.toolbar-btn[data-page]').forEach(btn => {
+            btn.addEventListener('click', () => this.showPage(btn.getAttribute('data-page')));
+        });
+    },
+
+    showPage(pageName) {
+        ['home', 'library', 'combo', 'battle', 'links'].forEach(p => {
+            const el = document.getElementById(`page-${p}`);
+            if (el) el.classList.toggle('hidden', p !== pageName);
+        });
+
+        document.querySelectorAll('.toolbar-btn[data-page]').forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-page') === pageName);
+        });
+
+        // 每次切換進招式庫頁面，重新整理篩選選單與清單內容
+        if (pageName === 'library' && typeof TrickLibrary.onEnterLibraryPage === 'function') {
+            TrickLibrary.onEnterLibraryPage();
+        }
+        // 每次切換進對戰頁面，重置成一開始輸入對方暱稱的畫面
+        if (pageName === 'battle' && typeof BattleSystem.onEnterBattlePage === 'function') {
+            BattleSystem.onEnterBattlePage();
+        }
     },
     
     onUserSwitched() {
