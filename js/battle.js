@@ -1,7 +1,9 @@
 // js/battle.js
-// 對戰功能：輸入對方暱稱 -> 比對雙方招式庫 -> 篩選並勾選要對戰的招式、設定雙方血量 -> 開始對戰，
-// 每輪抽一個招式，記錄「你沒接到」「對方沒接到」或「雙方都接到」，血量扣到 0 就輸了。
+// 對戰功能：輸入對方暱稱 -> 比對雙方招式庫 -> 依分類邏輯篩選並勾選要對戰的招式 -> 開始對戰，
+// 每輪抽一個招式，哪一邊沒接到就點亮那一邊一個 KENDAMA 字母，先點滿 7 個字母的那一邊輸。
 import { TrickLibrary } from "./library.js";
+
+const KENDAMA_LETTERS = ['K', 'E', 'N', 'D', 'A', 'M', 'A'];
 
 export const BattleSystem = {
     opponentName: null,
@@ -12,9 +14,8 @@ export const BattleSystem = {
     battleHistory: [],       // 已經抽過的招式 id，避免連續重複抽到同一個
     currentTrick: null,      // 目前這輪抽到的招式
 
-    maxHp: 3,   // 雙方血量上限（用 ken 的血量顆數計算），可在選招式時調整
-    myHp: 3,
-    oppHp: 3,
+    myMarks: [],   // 7 個 KENDAMA 字母的點亮狀態（true=已點亮）
+    oppMarks: [],
     gameOver: false,
 
     init() {
@@ -26,23 +27,22 @@ export const BattleSystem = {
         this.domStartBtn = document.getElementById('btn-battle-start');
         this.domInputError = document.getElementById('battle-input-error');
 
-        this.domHpInput = document.getElementById('battle-hp-input');
+        this.domExcludeBothMastered = document.getElementById('chk-battle-exclude-both-mastered');
+        this.domIncludeOneUnlocked = document.getElementById('chk-battle-include-one-unlocked');
         this.domFilterCategory = document.getElementById('battle-filter-category');
         this.domFilterSubcategory = document.getElementById('battle-filter-subcategory');
+        this.domFilterMasterSide = document.getElementById('battle-filter-master-side');
         this.domTrickList = document.getElementById('battle-trick-list');
         this.domSelectSummary = document.getElementById('battle-select-summary');
         this.domConfirmBtn = document.getElementById('btn-battle-confirm');
         this.domOppNameLabel1 = document.getElementById('battle-opp-name-label-1');
 
         this.domOppNameLabel2 = document.getElementById('battle-opp-name-label-2');
-        this.domMyHpDots = document.getElementById('battle-my-hp');
-        this.domOppHpDots = document.getElementById('battle-opp-hp');
+        this.domMyMarks = document.getElementById('battle-my-marks');
+        this.domOppMarks = document.getElementById('battle-opp-marks');
         this.domDrawResult = document.getElementById('battle-draw-result');
         this.domResultMessage = document.getElementById('battle-result-message');
-        this.domRoundActions = document.getElementById('battle-round-actions');
-        this.domMissMeBtn = document.getElementById('btn-battle-miss-me');
         this.domBothSuccessBtn = document.getElementById('btn-battle-both-success');
-        this.domMissOppBtn = document.getElementById('btn-battle-miss-opp');
         this.domRestartBtn = document.getElementById('btn-battle-restart');
 
         if (this.domStartBtn) this.domStartBtn.onclick = () => this.handleStart();
@@ -51,6 +51,10 @@ export const BattleSystem = {
                 if (e.key === 'Enter') this.handleStart();
             });
         }
+
+        if (this.domExcludeBothMastered) this.domExcludeBothMastered.onchange = () => this.renderTrickList();
+        if (this.domIncludeOneUnlocked) this.domIncludeOneUnlocked.onchange = () => this.renderTrickList();
+        if (this.domFilterMasterSide) this.domFilterMasterSide.onchange = () => this.renderTrickList();
 
         if (this.domFilterCategory) {
             this.domFilterCategory.onchange = () => {
@@ -74,10 +78,23 @@ export const BattleSystem = {
         }
 
         if (this.domConfirmBtn) this.domConfirmBtn.onclick = () => this.confirmSelection();
-        if (this.domMissMeBtn) this.domMissMeBtn.onclick = () => this.recordRound('miss-me');
-        if (this.domBothSuccessBtn) this.domBothSuccessBtn.onclick = () => this.recordRound('both-success');
-        if (this.domMissOppBtn) this.domMissOppBtn.onclick = () => this.recordRound('miss-opp');
+        if (this.domBothSuccessBtn) this.domBothSuccessBtn.onclick = () => this.drawNextTrick();
         if (this.domRestartBtn) this.domRestartBtn.onclick = () => this.resetToInput();
+
+        if (this.domMyMarks) {
+            this.domMyMarks.addEventListener('click', (e) => {
+                const btn = e.target.closest('.mark-btn');
+                if (!btn) return;
+                this.toggleMark('me', parseInt(btn.getAttribute('data-index'), 10));
+            });
+        }
+        if (this.domOppMarks) {
+            this.domOppMarks.addEventListener('click', (e) => {
+                const btn = e.target.closest('.mark-btn');
+                if (!btn) return;
+                this.toggleMark('opp', parseInt(btn.getAttribute('data-index'), 10));
+            });
+        }
     },
 
     // 每次從其他頁面切換進「對戰」頁面時呼叫，重置成一開始輸入暱稱的畫面
@@ -97,7 +114,8 @@ export const BattleSystem = {
 
         if (this.domOpponentInput) this.domOpponentInput.value = '';
         if (this.domInputError) this.domInputError.textContent = '';
-        if (this.domHpInput) this.domHpInput.value = this.maxHp;
+        if (this.domExcludeBothMastered) this.domExcludeBothMastered.checked = false;
+        if (this.domIncludeOneUnlocked) this.domIncludeOneUnlocked.checked = false;
 
         this.showStage('input');
     },
@@ -151,11 +169,12 @@ export const BattleSystem = {
     },
 
     // 比對雙方招式庫。只比較非自訂招式（雙方都用同一份 defaultTricks 為基準，避免自訂招式 id 對不上）。
-    // 三種分類：
+    // 三種基礎分類：
     // - both-mastered：雙方都已經用「移除熟練招式」標記為已熟練
     // - one-mastered：只有一方已經用「移除熟練招式」標記為已熟練（另一方不論解鎖與否）
     // - one-unlocked：雙方都還沒被標記為已熟練，但至少一方已解鎖
     // 雙方都還沒解鎖的招式不列入對戰候選（兩邊都不會，沒辦法拿來對戰）。
+    // 實際上要不要顯示 both-mastered / one-unlocked，交給選招式畫面上方的 checkbox 決定。
     buildComparedTricks() {
         const myTricks = TrickLibrary.tricks.filter(t => !t.isCustom);
         const getStatus = (t) => {
@@ -215,11 +234,31 @@ export const BattleSystem = {
             subs.map(s => `<option value="${s}">${s}</option>`).join('');
     },
 
-    renderTrickList() {
-        if (!this.domTrickList) return;
-
+    // 新增：套用上方的分類邏輯 checkbox（移除雙方都熟練／加入僅一方解鎖）、
+    // 熟練方篩選（你熟練／對方熟練），以及大小分類篩選，回傳最終要顯示的招式清單
+    getFilteredTricks() {
         const selectedCat = this.domFilterCategory ? this.domFilterCategory.value : '';
         const selectedSub = this.domFilterSubcategory ? this.domFilterSubcategory.value : '';
+        const masterSide = this.domFilterMasterSide ? this.domFilterMasterSide.value : '';
+        const excludeBothMastered = this.domExcludeBothMastered ? this.domExcludeBothMastered.checked : false;
+        const includeOneUnlocked = this.domIncludeOneUnlocked ? this.domIncludeOneUnlocked.checked : false;
+
+        return this.comparedTricks.filter(t => {
+            if (selectedCat && t.category !== selectedCat) return false;
+            if (selectedSub && t.subcategory !== selectedSub) return false;
+
+            if (t.group === 'both-mastered' && excludeBothMastered) return false;
+            if (t.group === 'one-unlocked' && !includeOneUnlocked) return false;
+
+            if (masterSide === 'me' && !(t.group === 'one-mastered' && t.myStatus === 'mastered')) return false;
+            if (masterSide === 'opp' && !(t.group === 'one-mastered' && t.oppStatus === 'mastered')) return false;
+
+            return true;
+        });
+    },
+
+    renderTrickList() {
+        if (!this.domTrickList) return;
 
         const groupLabels = {
             'both-mastered': '雙方都熟練',
@@ -228,9 +267,7 @@ export const BattleSystem = {
         };
         const groupOrder = { 'both-mastered': 0, 'one-mastered': 1, 'one-unlocked': 2 };
 
-        const filtered = this.comparedTricks
-            .filter(t => (!selectedCat || t.category === selectedCat) && (!selectedSub || t.subcategory === selectedSub))
-            .sort((a, b) => groupOrder[a.group] - groupOrder[b.group]);
+        const filtered = this.getFilteredTricks().sort((a, b) => groupOrder[a.group] - groupOrder[b.group]);
 
         if (filtered.length === 0) {
             this.domTrickList.innerHTML = `<div style="text-align:center; color:#95a5a6; padding: 20px;">沒有符合條件的招式</div>`;
@@ -263,42 +300,71 @@ export const BattleSystem = {
             return;
         }
 
-        const hpValue = this.domHpInput ? parseInt(this.domHpInput.value, 10) : 3;
-        this.maxHp = (Number.isFinite(hpValue) && hpValue > 0) ? hpValue : 3;
-        this.myHp = this.maxHp;
-        this.oppHp = this.maxHp;
-        this.gameOver = false;
-
         this.battlePool = this.comparedTricks.filter(t => this.selectedTrickIds.has(t.id));
         this.battleHistory = [];
+        this.myMarks = new Array(KENDAMA_LETTERS.length).fill(false);
+        this.oppMarks = new Array(KENDAMA_LETTERS.length).fill(false);
+        this.gameOver = false;
 
-        this.renderHpDots();
-        this.setRoundActionsEnabled(true);
+        this.renderMarks();
         if (this.domResultMessage) this.domResultMessage.classList.add('hidden');
+        if (this.domBothSuccessBtn) this.domBothSuccessBtn.disabled = false;
 
         this.showStage('play');
         this.drawNextTrick();
     },
 
-    // 用小圓點表示血量（對應 ken 的血量顆數），扣掉的血量用空心點表示
-    renderHpDots() {
-        const renderDots = (current) => {
-            let html = '';
-            for (let i = 0; i < this.maxHp; i++) {
-                html += `<span class="hp-dot ${i < current ? 'filled' : 'empty'}"></span>`;
-            }
-            return html;
+    // 用 K-E-N-D-A-M-A 七個字母代表每一邊的失誤次數，哪一邊沒接到就點亮那一邊的一個字母；
+    // 再點一次已經點亮的字母可以取消（修正誤觸）。點滿 7 個字母的那一邊輸了。
+    renderMarks() {
+        const renderSide = (container, marks) => {
+            if (!container) return;
+            container.innerHTML = marks.map((lit, i) => `
+                <button type="button" class="mark-btn ${lit ? 'lit' : ''}" data-index="${i}" ${this.gameOver ? 'disabled' : ''}>${KENDAMA_LETTERS[i]}</button>
+            `).join('');
         };
-        if (this.domMyHpDots) this.domMyHpDots.innerHTML = renderDots(this.myHp);
-        if (this.domOppHpDots) this.domOppHpDots.innerHTML = renderDots(this.oppHp);
+        renderSide(this.domMyMarks, this.myMarks);
+        renderSide(this.domOppMarks, this.oppMarks);
     },
 
-    setRoundActionsEnabled(enabled) {
-        if (this.domRoundActions) this.domRoundActions.classList.toggle('hidden', !enabled);
+    toggleMark(side, index) {
+        if (this.gameOver) return;
+        const marks = side === 'me' ? this.myMarks : this.oppMarks;
+        if (!marks || index < 0 || index >= marks.length) return;
+
+        const wasLit = marks[index];
+        marks[index] = !wasLit;
+        this.renderMarks();
+
+        // 只有「新點亮」才代表這一輪出現了失誤，需要檢查是否遊戲結束、並抽下一招；
+        // 取消點亮（修正誤觸）不會觸發這些動作。
+        if (!wasLit) {
+            if (this.checkGameOver()) return;
+            this.drawNextTrick();
+        }
+    },
+
+    checkGameOver() {
+        const myFull = this.myMarks.every(Boolean);
+        const oppFull = this.oppMarks.every(Boolean);
+        if (!myFull && !oppFull) return false;
+
+        this.gameOver = true;
+        if (this.domBothSuccessBtn) this.domBothSuccessBtn.disabled = true;
+        this.renderMarks();
+
+        if (this.domResultMessage) {
+            const text = myFull && oppFull
+                ? '平手！雙方同時點滿 7 個字母'
+                : (myFull ? `${this.opponentName || '對方'} 獲勝！` : '你獲勝了！');
+            this.domResultMessage.textContent = text;
+            this.domResultMessage.classList.remove('hidden');
+        }
+        return true;
     },
 
     drawNextTrick() {
-        if (this.battlePool.length === 0 || !this.domDrawResult) return;
+        if (this.gameOver || this.battlePool.length === 0 || !this.domDrawResult) return;
 
         let available = this.battlePool.filter(t => !this.battleHistory.includes(t.id));
         if (available.length === 0) {
@@ -311,38 +377,5 @@ export const BattleSystem = {
         this.currentTrick = picked;
 
         this.domDrawResult.innerText = TrickLibrary.formatTrickLabel(picked);
-    },
-
-    // 記錄這一輪的結果：'miss-me'（你沒接到）／'both-success'（雙方都接到）／'miss-opp'（對方沒接到）
-    recordRound(outcome) {
-        if (this.gameOver) return;
-
-        if (outcome === 'miss-me') {
-            this.myHp = Math.max(0, this.myHp - 1);
-        } else if (outcome === 'miss-opp') {
-            this.oppHp = Math.max(0, this.oppHp - 1);
-        }
-
-        this.renderHpDots();
-
-        if (this.myHp <= 0 || this.oppHp <= 0) {
-            this.endGame();
-            return;
-        }
-
-        this.drawNextTrick();
-    },
-
-    endGame() {
-        this.gameOver = true;
-        this.setRoundActionsEnabled(false);
-
-        if (this.domResultMessage) {
-            const winnerText = this.myHp <= 0 && this.oppHp <= 0
-                ? '平手！雙方血量同時扣到 0'
-                : (this.myHp <= 0 ? `${this.opponentName || '對方'} 獲勝！` : '你獲勝了！');
-            this.domResultMessage.textContent = winnerText;
-            this.domResultMessage.classList.remove('hidden');
-        }
     }
 };

@@ -719,61 +719,48 @@ input.today-count::-webkit-inner-spin-button {
     color: var(--primary-color);
 }
 
-.toolbar-icon {
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    background-color: #e6fbf8;
-    border: 1.5px solid currentColor;
-}
-
-.toolbar-icon img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-
-.toolbar-icon.no-image::before {
-    content: "招";
-    font-size: 0.7rem;
-    font-weight: bold;
-    color: var(--primary-color);
-}
-
 .toolbar-label {
     font-size: 0.7rem;
     font-weight: 600;
 }
 
-/* 正中間的「首頁」按鈕：獨立的圓形樣式，懸浮在工具列上方，跟左右四個頁籤做出區隔 */
+/* 正中間的「首頁」按鈕：招式庫的圓形照片移到這裡，懸浮在工具列上方，跟左右四個頁籤做出區隔 */
 .toolbar-btn-home {
-    justify-content: flex-start;
-    padding-top: 0;
+    justify-content: flex-end;
+    padding-bottom: 6px;
+    gap: 4px;
 }
 
 .toolbar-home-circle {
     width: 52px;
     height: 52px;
     border-radius: 50%;
-    background-color: var(--primary-color);
-    color: #ffffff;
+    background-color: #e6fbf8;
+    color: var(--primary-color);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 0.8rem;
     font-weight: 700;
-    box-shadow: 0 4px 10px rgba(20, 184, 166, 0.4);
+    box-shadow: 0 4px 10px rgba(20, 184, 166, 0.35);
     transform: translateY(-14px);
     border: 3px solid #ffffff;
+    overflow: hidden;
+}
+
+.toolbar-home-circle img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.toolbar-home-circle.no-image::before {
+    content: "招";
 }
 
 .toolbar-btn-home.active .toolbar-home-circle {
-    background-color: #0f9c8c;
+    border-color: var(--primary-color);
 }
 
 /* ==========================================================================
@@ -859,11 +846,6 @@ input.today-count::-webkit-inner-spin-button {
         height: 72px;
     }
 
-    .toolbar-icon {
-        width: 26px;
-        height: 26px;
-    }
-
     .toolbar-home-circle {
         width: 58px;
         height: 58px;
@@ -880,13 +862,20 @@ input.today-count::-webkit-inner-spin-button {
     }
 
     #page-library {
-        width: 60vw;
-        min-width: 600px;
-        max-width: 960px;
+        width: 80vw;
+        min-width: 700px;
+        max-width: 1200px;
     }
 
     #page-library .library-list {
-        max-height: 60vh;
+        max-height: 42vh;
+    }
+
+    /* 電腦版空間夠寬，招式名稱不換行；極端超長的名稱才用省略號收尾 */
+    #page-library .lib-item strong {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     /* 較寬螢幕：大分類／小分類／招式三個選單都在同一排，招式選單改用剩餘空間伸展 */
@@ -1107,37 +1096,66 @@ input.today-count::-webkit-inner-spin-button {
     margin: 10px 0;
 }
 
-/* 血量設定（選招式階段） */
-.battle-hp-config {
+/* 分類邏輯 checkbox（選招式階段最上方） */
+.battle-logic-checks {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: #f8fafc;
+    border-radius: 8px;
+}
+
+.battle-logic-checks label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.88rem;
+    color: var(--text-main);
+    cursor: pointer;
+}
+
+.battle-logic-checks input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    accent-color: var(--action-success);
+    cursor: pointer;
+}
+
+/* 熟練方篩選（你熟練／對方熟練） */
+.battle-master-filter {
     margin-bottom: 10px;
 }
 
-.battle-hp-config .app-select {
-    width: 100px;
-    margin-top: 6px;
+.battle-draw-center {
+    flex: 1;
+    min-width: 0;
 }
 
-.battle-play-header {
+.battle-marks-row {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 14px;
-    margin-bottom: 20px;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 12px;
 }
 
-.battle-side-block {
+.battle-marks-col {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 6px;
+    flex-shrink: 0;
 }
 
 .battle-side-label {
-    font-size: 1.1rem;
+    font-size: 0.95rem;
     font-weight: 700;
-    padding: 6px 16px;
+    padding: 4px 12px;
     border-radius: 999px;
     color: #ffffff;
+    white-space: nowrap;
 }
 
 .battle-side-me {
@@ -1148,50 +1166,65 @@ input.today-count::-webkit-inner-spin-button {
     background-color: var(--card-border-challenge);
 }
 
-/* 血量顯示：用 ken 的血量顆數概念，圓點代表每一滴血，扣掉的血量用空心點表示 */
-.battle-hp-dots {
+/* 用 K-E-N-D-A-M-A 七個字母代表雙方各自的失誤次數，點亮全部 7 個就輸了 */
+.battle-marks-side {
     display: flex;
+    flex-wrap: wrap;
     gap: 4px;
+    width: 64px;
 }
 
-.hp-dot {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    border: 2px solid var(--text-muted);
-}
-
-.battle-side-block:first-child .hp-dot.filled {
-    background-color: var(--card-border-stable);
-    border-color: var(--card-border-stable);
-}
-
-.battle-side-block:last-child .hp-dot.filled {
-    background-color: var(--card-border-challenge);
-    border-color: var(--card-border-challenge);
-}
-
-.hp-dot.empty {
-    background-color: transparent;
-}
-
-.battle-vs {
+.mark-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: 2px solid #cdd5df;
+    background-color: #ffffff;
+    font-size: 0.72rem;
     font-weight: 700;
     color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.mark-btn:disabled {
+    cursor: default;
+}
+
+#battle-my-marks .mark-btn.lit {
+    background-color: var(--card-border-stable);
+    border-color: var(--card-border-stable);
+    color: #ffffff;
+}
+
+#battle-opp-marks .mark-btn.lit {
+    background-color: var(--card-border-challenge);
+    border-color: var(--card-border-challenge);
+    color: #ffffff;
+}
+
+.battle-marks-tip {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-align: center;
+    margin-bottom: 12px;
 }
 
 .battle-draw-result {
     background-color: #f8fafc;
     border: 1px solid #e2e8f0;
     border-radius: 10px;
-    padding: 28px 16px;
+    padding: 20px 12px;
     text-align: center;
-    font-size: 1.3rem;
+    font-size: 1.1rem;
     font-weight: 700;
     color: var(--text-main);
     white-space: pre-line;
     word-break: normal;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
 }
 
 .battle-result-message {
@@ -1199,14 +1232,7 @@ input.today-count::-webkit-inner-spin-button {
     font-size: 1.2rem;
     font-weight: 700;
     color: var(--primary-color);
-    margin-bottom: 16px;
-}
-
-.battle-round-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
 }
 
 #btn-battle-restart {

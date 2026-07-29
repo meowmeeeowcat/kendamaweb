@@ -165,8 +165,6 @@
     </section>
 
     <section id="page-battle" class="app-content app-page hidden">
-        <h2 class="page-title">對戰</h2>
-
         <div id="battle-stage-input" class="page-card">
             <p class="modal-tip">輸入對方的暱稱，系統會比對雙方的招式庫，篩選出可以拿來對戰的招式。</p>
             <input type="text" id="battle-opponent-input" placeholder="請輸入對方的暱稱 (例如: 貓貓)">
@@ -179,10 +177,12 @@
                 <span><i class="battle-legend-dot battle-legend-me"></i>你</span>
                 <span><i class="battle-legend-dot battle-legend-opp"></i><span id="battle-opp-name-label-1">對手</span></span>
             </div>
-            <div class="battle-hp-config">
-                <label for="battle-hp-input" class="sort-label">雙方血量（用 ken 的血量顆數計算，扣到 0 就輸了）</label>
-                <input type="number" id="battle-hp-input" class="app-select" value="3" min="1" max="10">
+
+            <div class="battle-logic-checks">
+                <label><input type="checkbox" id="chk-battle-exclude-both-mastered"> 移除雙方都熟練的招式</label>
+                <label><input type="checkbox" id="chk-battle-include-one-unlocked"> 加入僅一方解鎖的招式</label>
             </div>
+
             <div class="filter-group">
                 <select id="battle-filter-category" class="app-select">
                     <option value="">全部大分類</option>
@@ -191,30 +191,36 @@
                     <option value="">全部小分類</option>
                 </select>
             </div>
+            <div class="battle-master-filter">
+                <select id="battle-filter-master-side" class="app-select">
+                    <option value="">熟練方：全部</option>
+                    <option value="me">你熟練</option>
+                    <option value="opp">對方熟練</option>
+                </select>
+            </div>
+
             <div id="battle-trick-list" class="library-list battle-trick-list"></div>
             <div id="battle-select-summary" class="battle-select-summary">已選擇 0 個招式</div>
             <button id="btn-battle-confirm" class="btn-action success">確認招式，開始對戰</button>
         </div>
 
         <div id="battle-stage-play" class="page-card hidden">
-            <div class="battle-play-header">
-                <div class="battle-side-block">
+            <div class="battle-marks-row">
+                <div class="battle-marks-col">
                     <span class="battle-side-label battle-side-me">你</span>
-                    <div class="battle-hp-dots" id="battle-my-hp"></div>
+                    <div class="battle-marks-side" id="battle-my-marks"></div>
                 </div>
-                <span class="battle-vs">VS</span>
-                <div class="battle-side-block">
+                <div class="battle-draw-center">
+                    <div id="battle-draw-result" class="battle-draw-result">按下方按鈕抽招式</div>
+                    <div id="battle-result-message" class="battle-result-message hidden"></div>
+                    <button id="btn-battle-both-success" class="btn-action success">雙方都接到，抽下一招</button>
+                </div>
+                <div class="battle-marks-col">
                     <span class="battle-side-label battle-side-opp" id="battle-opp-name-label-2">對手</span>
-                    <div class="battle-hp-dots" id="battle-opp-hp"></div>
+                    <div class="battle-marks-side" id="battle-opp-marks"></div>
                 </div>
             </div>
-            <div id="battle-draw-result" class="battle-draw-result">按下方按鈕抽招式</div>
-            <div id="battle-result-message" class="battle-result-message hidden"></div>
-            <div id="battle-round-actions" class="battle-round-actions">
-                <button id="btn-battle-miss-me" class="btn-action secondary">你沒接到 (-1)</button>
-                <button id="btn-battle-both-success" class="btn-action success">雙方都接到，抽下一招</button>
-                <button id="btn-battle-miss-opp" class="btn-action secondary">對方沒接到 (-1)</button>
-            </div>
+            <p class="battle-marks-tip">哪一邊沒接到，就點亮那一邊的一個字母；點亮全部 7 個字母（K-E-N-D-A-M-A）的那一邊就輸了</p>
             <button id="btn-battle-restart" class="btn-action secondary">重新開始（換對手）</button>
         </div>
     </section>
@@ -228,17 +234,17 @@
 
     <nav class="bottom-toolbar" id="bottom-toolbar">
         <button class="toolbar-btn" id="btn-nav-library" data-page="library" type="button">
-            <span class="toolbar-icon">
-                <img src="images/library-icon.png" alt=""
-                     onerror="this.style.display='none'; this.parentElement.classList.add('no-image');" />
-            </span>
             <span class="toolbar-label">招式庫</span>
         </button>
         <button class="toolbar-btn" id="btn-nav-combo" data-page="combo" type="button">
             <span class="toolbar-label">串招</span>
         </button>
         <button class="toolbar-btn toolbar-btn-home" id="btn-nav-home" data-page="home" type="button">
-            <span class="toolbar-home-circle">首頁</span>
+            <span class="toolbar-home-circle">
+                <img src="images/library-icon.png" alt=""
+                     onerror="this.style.display='none'; this.parentElement.classList.add('no-image');" />
+            </span>
+            <span class="toolbar-label">首頁</span>
         </button>
         <button class="toolbar-btn" id="btn-nav-battle" data-page="battle" type="button">
             <span class="toolbar-label">對戰</span>
