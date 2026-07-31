@@ -731,9 +731,15 @@ input.today-count::-webkit-inner-spin-button {
     gap: 4px;
 }
 
+.toolbar-btn-home .toolbar-label {
+    flex-shrink: 0;
+}
+
 .toolbar-home-circle {
     width: 52px;
     height: 52px;
+    min-height: 52px;
+    flex-shrink: 0;
     border-radius: 50%;
     background-color: #e6fbf8;
     color: var(--primary-color);
@@ -865,6 +871,8 @@ input.today-count::-webkit-inner-spin-button {
         width: 80vw;
         min-width: 700px;
         max-width: 1200px;
+        margin-left: auto;
+        margin-right: auto;
     }
 
     #page-library .library-list {

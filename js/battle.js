@@ -146,17 +146,23 @@ export const BattleSystem = {
         if (this.domInputError) this.domInputError.textContent = '搜尋中...';
         if (this.domStartBtn) this.domStartBtn.disabled = true;
 
-        const oppTricks = await TrickLibrary.fetchUserTricksSnapshot(raw);
+        const result = await TrickLibrary.fetchUserTricksSnapshot(raw);
 
         if (this.domStartBtn) this.domStartBtn.disabled = false;
 
-        if (!oppTricks) {
+        if (result.status === 'error') {
+            if (this.domInputError) {
+                this.domInputError.textContent = `讀取對手資料時發生錯誤：${result.error && result.error.message ? result.error.message : '請檢查網路連線後再試一次'}`;
+            }
+            return;
+        }
+        if (result.status === 'not-found') {
             if (this.domInputError) this.domInputError.textContent = '找不到這個暱稱的玩家，請確認暱稱是否正確';
             return;
         }
 
         this.opponentName = raw;
-        this.opponentTricks = oppTricks;
+        this.opponentTricks = result.tricks;
         if (this.domInputError) this.domInputError.textContent = '';
         if (this.domOppNameLabel1) this.domOppNameLabel1.textContent = raw;
         if (this.domOppNameLabel2) this.domOppNameLabel2.textContent = raw;

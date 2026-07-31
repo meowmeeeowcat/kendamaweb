@@ -432,6 +432,10 @@ export const TrickLibrary = {
             }
         } catch (e) {
             console.error("Firebase 載入失敗:", e);
+            // 讀取失敗時絕不能把雲端資料蓋成空白（saveUserProgress 不會被觸發，見下方 return false），
+            // 但畫面上暫時只能先顯示空白的本地狀態。改成跳出明確的錯誤訊息，
+            // 讓使用者知道「這不是進度真的不見了，只是這次讀取失敗」，並看得到實際錯誤內容方便回報。
+            alert(`讀取雲端資料時發生錯誤，這次暫時看到的不是你真正的進度（雲端資料不會被覆蓋，重新整理或稍後再試通常就能恢復）。\n\n錯誤內容：${e && e.message ? e.message : e}\n\n如果一直發生，很可能是 Firebase 專案的 Firestore 安全性規則到期或設定問題，需要到 Firebase 主控台的 Firestore Database，Rules 分頁檢查。`);
             this.resetLocalTricks();
             return false; // 讀取失敗，絕不能反過來把雲端資料蓋成空白
         }
@@ -484,18 +488,20 @@ export const TrickLibrary = {
     },
 
     // 新增：給「對戰」功能用的唯讀查詢。取得指定暱稱的使用者目前每個招式的解鎖／熟練狀態快照，
-    // 不會動到 this.tricks 等任何本地狀態。找不到這個使用者就回傳 null。
+    // 不會動到 this.tricks 等任何本地狀態。
+    // 回傳 { status: 'ok', tricks } / { status: 'not-found' } / { status: 'error', error }，
+    // 讓呼叫端可以分清楚「真的找不到這個玩家」跟「讀取時發生錯誤」，不要顯示錯誤的提示訊息。
     async fetchUserTricksSnapshot(username) {
-        if (!username) return null;
+        if (!username) return { status: 'not-found' };
         try {
             const userDocRef = doc(db, "users", username);
             const userSnap = await getDoc(userDocRef);
-            if (!userSnap.exists()) return null;
+            if (!userSnap.exists()) return { status: 'not-found' };
 
             const cloudData = userSnap.data();
             const { tricks: cloudTricks } = this.migrateLegacyTricksIfNeeded(cloudData.tricks);
 
-            return this.defaultTricks.map(dt => ({
+            const tricks = this.defaultTricks.map(dt => ({
                 id: dt.id,
                 name: dt.name,
                 category: dt.category,
@@ -503,9 +509,11 @@ export const TrickLibrary = {
                 isUnlocked: cloudTricks[dt.id] && cloudTricks[dt.id].isUnlocked !== undefined ? cloudTricks[dt.id].isUnlocked : dt.isUnlocked,
                 isMastered: !!(cloudTricks[dt.id] && cloudTricks[dt.id].isMastered)
             }));
+
+            return { status: 'ok', tricks };
         } catch (e) {
             console.error("讀取對手招式庫失敗:", e);
-            return null;
+            return { status: 'error', error: e };
         }
     },
 
