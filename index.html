@@ -157,13 +157,6 @@
         </div>
     </section>
 
-    <section id="page-combo" class="app-content app-page hidden">
-        <div class="page-placeholder">
-            <h2>串招</h2>
-            <p>功能開發中，敬請期待。</p>
-        </div>
-    </section>
-
     <section id="page-battle" class="app-content app-page hidden">
         <div id="battle-stage-input" class="page-card">
             <p class="modal-tip">輸入對方的暱稱，系統會比對雙方的招式庫，篩選出可以拿來對戰的招式。</p>
@@ -174,13 +167,16 @@
 
         <div id="battle-stage-select" class="page-card hidden">
             <div class="battle-legend">
-                <span><i class="battle-legend-dot battle-legend-me"></i>你</span>
-                <span><i class="battle-legend-dot battle-legend-opp"></i><span id="battle-opp-name-label-1">對手</span></span>
+                <span><i class="battle-legend-dot battle-legend-me"></i>你 (A)</span>
+                <span><i class="battle-legend-dot battle-legend-opp"></i><span id="battle-opp-name-label-1">對手</span> (B)</span>
             </div>
 
             <div class="battle-logic-checks">
-                <label><input type="checkbox" id="chk-battle-exclude-both-mastered"> 移除雙方都熟練的招式</label>
-                <label><input type="checkbox" id="chk-battle-include-one-unlocked"> 加入僅一方解鎖的招式</label>
+                <label><input type="checkbox" id="chk-battle-both-mastered" checked> 雙方都熟練</label>
+                <label><input type="checkbox" id="chk-battle-a-mastered" checked> A 熟練招</label>
+                <label><input type="checkbox" id="chk-battle-b-mastered" checked> B 熟練招</label>
+                <label><input type="checkbox" id="chk-battle-a-unlocked" checked> A 已解鎖招</label>
+                <label><input type="checkbox" id="chk-battle-b-unlocked" checked> B 已解鎖招</label>
             </div>
 
             <div class="filter-group">
@@ -191,12 +187,10 @@
                     <option value="">全部小分類</option>
                 </select>
             </div>
-            <div class="battle-master-filter">
-                <select id="battle-filter-master-side" class="app-select">
-                    <option value="">熟練方：全部</option>
-                    <option value="me">你熟練</option>
-                    <option value="opp">對方熟練</option>
-                </select>
+
+            <div class="bulk-select-all-row">
+                <input type="checkbox" id="chk-battle-select-all" class="bulk-select-all-checkbox">
+                <label for="chk-battle-select-all">全選</label>
             </div>
 
             <div id="battle-trick-list" class="library-list battle-trick-list"></div>
@@ -220,15 +214,8 @@
                     <div class="battle-marks-side" id="battle-opp-marks"></div>
                 </div>
             </div>
-            <p class="battle-marks-tip">哪一邊沒接到，就點亮那一邊的一個字母；點亮全部 7 個字母（K-E-N-D-A-M-A）的那一邊就輸了</p>
+            <p class="battle-marks-tip">哪一邊沒接到，就點亮那一邊的一個 KEN；點亮全部 3 個 KEN 的那一邊就輸了</p>
             <button id="btn-battle-restart" class="btn-action secondary">重新開始（換對手）</button>
-        </div>
-    </section>
-
-    <section id="page-links" class="app-content app-page hidden">
-        <div class="page-placeholder">
-            <h2>常用連結</h2>
-            <p>功能開發中，敬請期待。</p>
         </div>
     </section>
 
@@ -236,21 +223,14 @@
         <button class="toolbar-btn" id="btn-nav-library" data-page="library" type="button">
             <span class="toolbar-label">招式庫</span>
         </button>
-        <button class="toolbar-btn" id="btn-nav-combo" data-page="combo" type="button">
-            <span class="toolbar-label">串招</span>
-        </button>
         <button class="toolbar-btn toolbar-btn-home" id="btn-nav-home" data-page="home" type="button">
             <span class="toolbar-home-circle">
                 <img src="images/library-icon.png" alt=""
                      onerror="this.style.display='none'; this.parentElement.classList.add('no-image');" />
             </span>
-            <span class="toolbar-label">首頁</span>
         </button>
         <button class="toolbar-btn" id="btn-nav-battle" data-page="battle" type="button">
             <span class="toolbar-label">對戰</span>
-        </button>
-        <button class="toolbar-btn" id="btn-nav-links" data-page="links" type="button">
-            <span class="toolbar-label">常用連結</span>
         </button>
     </nav>
 

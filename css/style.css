@@ -726,13 +726,7 @@ input.today-count::-webkit-inner-spin-button {
 
 /* 正中間的「首頁」按鈕：招式庫的圓形照片移到這裡，懸浮在工具列上方，跟左右四個頁籤做出區隔 */
 .toolbar-btn-home {
-    justify-content: flex-end;
-    padding-bottom: 6px;
-    gap: 4px;
-}
-
-.toolbar-btn-home .toolbar-label {
-    flex-shrink: 0;
+    justify-content: center;
 }
 
 .toolbar-home-circle {
@@ -780,8 +774,13 @@ input.today-count::-webkit-inner-spin-button {
     .app-content {
         max-width: 900px;
         padding: 24px;
-        /* 【修改】今日穩固招式／新招式挑戰 並排放在左側並上下堆疊，
-           今日練習統計則放在右側，方便同時瀏覽 */
+    }
+
+    /* 這個左右兩欄的 grid 排版是首頁專用的（今日穩固招式／新招式挑戰在左，今日練習統計在右），
+       之前寫在共用的 .app-content 上，導致招式庫／對戰頁面也被套用 display:grid，
+       但那些頁面裡沒有對應的 grid-area 子元素，內容就只會塞進左欄，看起來像整頁被擠到左邊。
+       改成只套用在 #page-home 上，其他頁面維持一般的區塊排版。 */
+    #page-home {
         display: grid;
         grid-template-columns: 1fr 1fr;
         grid-template-areas:
@@ -1088,6 +1087,7 @@ input.today-count::-webkit-inner-spin-button {
     border-radius: 3px;
     display: inline-block;
     margin-bottom: 3px;
+    margin-right: 4px;
 }
 
 .battle-item-info strong {
@@ -1132,11 +1132,6 @@ input.today-count::-webkit-inner-spin-button {
     cursor: pointer;
 }
 
-/* 熟練方篩選（你熟練／對方熟練） */
-.battle-master-filter {
-    margin-bottom: 10px;
-}
-
 .battle-draw-center {
     flex: 1;
     min-width: 0;
@@ -1174,21 +1169,19 @@ input.today-count::-webkit-inner-spin-button {
     background-color: var(--card-border-challenge);
 }
 
-/* 用 K-E-N-D-A-M-A 七個字母代表雙方各自的失誤次數，點亮全部 7 個就輸了 */
+/* 用 K-E-N 三個字母代表雙方各自的失誤次數，點亮全部 3 個就輸了 */
 .battle-marks-side {
     display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    width: 64px;
+    gap: 5px;
 }
 
 .mark-btn {
-    width: 28px;
-    height: 28px;
-    border-radius: 6px;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
     border: 2px solid #cdd5df;
     background-color: #ffffff;
-    font-size: 0.72rem;
+    font-size: 0.85rem;
     font-weight: 700;
     color: var(--text-muted);
     cursor: pointer;

@@ -53,7 +53,7 @@ export const AppController = {
     },
 
     showPage(pageName) {
-        ['home', 'library', 'combo', 'battle', 'links'].forEach(p => {
+        ['home', 'library', 'battle'].forEach(p => {
             const el = document.getElementById(`page-${p}`);
             if (el) el.classList.toggle('hidden', p !== pageName);
         });

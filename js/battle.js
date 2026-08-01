@@ -1,20 +1,20 @@
 // js/battle.js
-// 對戰功能：輸入對方暱稱 -> 比對雙方招式庫 -> 依分類邏輯篩選並勾選要對戰的招式 -> 開始對戰，
-// 每輪抽一個招式，哪一邊沒接到就點亮那一邊一個 KENDAMA 字母，先點滿 7 個字母的那一邊輸。
+// 對戰功能：輸入對方暱稱 -> 比對雙方招式庫 -> 依分類邏輯勾選招式（預設全部勾選）-> 開始對戰，
+// 每輪抽一個招式，哪一邊沒接到就點亮那一邊一個 KEN 字母，先點滿 K-E-N 三個字母的那一邊輸。
 import { TrickLibrary } from "./library.js";
 
-const KENDAMA_LETTERS = ['K', 'E', 'N', 'D', 'A', 'M', 'A'];
+const KEN_LETTERS = ['K', 'E', 'N'];
 
 export const BattleSystem = {
     opponentName: null,
     opponentTricks: null,   // 對手的招式快照（陣列），由 TrickLibrary.fetchUserTricksSnapshot() 取得
-    comparedTricks: [],     // 比對過雙方狀態、已分類的招式清單（在進入 select 階段時計算一次）
-    selectedTrickIds: new Set(), // 使用者勾選要加入本次對戰的招式 id
+    comparedTricks: [],     // 比對過雙方狀態、已標記 tags 的招式清單（在進入 select 階段時計算一次）
+    selectedTrickIds: new Set(), // 使用者勾選要加入本次對戰的招式 id（進入 select 階段時預設全選）
     battlePool: [],          // 確認後鎖定的對戰招式池
     battleHistory: [],       // 已經抽過的招式 id，避免連續重複抽到同一個
     currentTrick: null,      // 目前這輪抽到的招式
 
-    myMarks: [],   // 7 個 KENDAMA 字母的點亮狀態（true=已點亮）
+    myMarks: [],   // 3 個 KEN 字母的點亮狀態（true=已點亮）
     oppMarks: [],
     gameOver: false,
 
@@ -27,11 +27,15 @@ export const BattleSystem = {
         this.domStartBtn = document.getElementById('btn-battle-start');
         this.domInputError = document.getElementById('battle-input-error');
 
-        this.domExcludeBothMastered = document.getElementById('chk-battle-exclude-both-mastered');
-        this.domIncludeOneUnlocked = document.getElementById('chk-battle-include-one-unlocked');
+        this.domChkBothMastered = document.getElementById('chk-battle-both-mastered');
+        this.domChkAMastered = document.getElementById('chk-battle-a-mastered');
+        this.domChkBMastered = document.getElementById('chk-battle-b-mastered');
+        this.domChkAUnlocked = document.getElementById('chk-battle-a-unlocked');
+        this.domChkBUnlocked = document.getElementById('chk-battle-b-unlocked');
+
         this.domFilterCategory = document.getElementById('battle-filter-category');
         this.domFilterSubcategory = document.getElementById('battle-filter-subcategory');
-        this.domFilterMasterSide = document.getElementById('battle-filter-master-side');
+        this.domSelectAllCheckbox = document.getElementById('chk-battle-select-all');
         this.domTrickList = document.getElementById('battle-trick-list');
         this.domSelectSummary = document.getElementById('battle-select-summary');
         this.domConfirmBtn = document.getElementById('btn-battle-confirm');
@@ -52,9 +56,9 @@ export const BattleSystem = {
             });
         }
 
-        if (this.domExcludeBothMastered) this.domExcludeBothMastered.onchange = () => this.renderTrickList();
-        if (this.domIncludeOneUnlocked) this.domIncludeOneUnlocked.onchange = () => this.renderTrickList();
-        if (this.domFilterMasterSide) this.domFilterMasterSide.onchange = () => this.renderTrickList();
+        [this.domChkBothMastered, this.domChkAMastered, this.domChkBMastered, this.domChkAUnlocked, this.domChkBUnlocked].forEach(chk => {
+            if (chk) chk.onchange = () => this.renderTrickList();
+        });
 
         if (this.domFilterCategory) {
             this.domFilterCategory.onchange = () => {
@@ -63,6 +67,20 @@ export const BattleSystem = {
             };
         }
         if (this.domFilterSubcategory) this.domFilterSubcategory.onchange = () => this.renderTrickList();
+
+        if (this.domSelectAllCheckbox) {
+            this.domSelectAllCheckbox.onchange = (e) => {
+                const visible = this.getFilteredTricks();
+                visible.forEach(t => {
+                    if (e.target.checked) {
+                        this.selectedTrickIds.add(t.id);
+                    } else {
+                        this.selectedTrickIds.delete(t.id);
+                    }
+                });
+                this.renderTrickList();
+            };
+        }
 
         if (this.domTrickList) {
             this.domTrickList.addEventListener('change', (e) => {
@@ -73,6 +91,7 @@ export const BattleSystem = {
                 } else {
                     this.selectedTrickIds.delete(id);
                 }
+                this.syncSelectAllCheckbox();
                 this.updateSelectSummary();
             });
         }
@@ -114,8 +133,11 @@ export const BattleSystem = {
 
         if (this.domOpponentInput) this.domOpponentInput.value = '';
         if (this.domInputError) this.domInputError.textContent = '';
-        if (this.domExcludeBothMastered) this.domExcludeBothMastered.checked = false;
-        if (this.domIncludeOneUnlocked) this.domIncludeOneUnlocked.checked = false;
+
+        // 分類邏輯 checkbox 每次重新開始都回到預設全部勾選
+        [this.domChkBothMastered, this.domChkAMastered, this.domChkBMastered, this.domChkAUnlocked, this.domChkBUnlocked].forEach(chk => {
+            if (chk) chk.checked = true;
+        });
 
         this.showStage('input');
     },
@@ -168,19 +190,22 @@ export const BattleSystem = {
         if (this.domOppNameLabel2) this.domOppNameLabel2.textContent = raw;
 
         this.comparedTricks = this.buildComparedTricks();
-        this.selectedTrickIds = new Set();
+        // 預設全部勾選：一進入選招式畫面，所有比對出來的招式都先勾好，使用者只需要取消不要的
+        this.selectedTrickIds = new Set(this.comparedTricks.map(t => t.id));
+
         this.initFilterOptions();
         this.renderTrickList();
         this.showStage('select');
     },
 
     // 比對雙方招式庫。只比較非自訂招式（雙方都用同一份 defaultTricks 為基準，避免自訂招式 id 對不上）。
-    // 三種基礎分類：
+    // 每個招式標記一組 tags（可以同時符合多個），用來對應選招式畫面上方的 5 個分類 checkbox：
     // - both-mastered：雙方都已經用「移除熟練招式」標記為已熟練
-    // - one-mastered：只有一方已經用「移除熟練招式」標記為已熟練（另一方不論解鎖與否）
-    // - one-unlocked：雙方都還沒被標記為已熟練，但至少一方已解鎖
-    // 雙方都還沒解鎖的招式不列入對戰候選（兩邊都不會，沒辦法拿來對戰）。
-    // 實際上要不要顯示 both-mastered / one-unlocked，交給選招式畫面上方的 checkbox 決定。
+    // - a-mastered：你（A）已經標記為已熟練
+    // - b-mastered：對方（B）已經標記為已熟練
+    // - a-unlocked：你（A）已解鎖但還沒被標記為已熟練
+    // - b-unlocked：對方（B）已解鎖但還沒被標記為已熟練
+    // 雙方都還沒解鎖的招式（沒有任何 tag）不列入對戰候選。
     buildComparedTricks() {
         const myTricks = TrickLibrary.tricks.filter(t => !t.isCustom);
         const getStatus = (t) => {
@@ -195,14 +220,12 @@ export const BattleSystem = {
             const myStatus = getStatus(mine);
             const oppStatus = getStatus(opp);
 
-            let group = null;
-            if (myStatus === 'mastered' && oppStatus === 'mastered') {
-                group = 'both-mastered';
-            } else if (myStatus === 'mastered' || oppStatus === 'mastered') {
-                group = 'one-mastered';
-            } else if (myStatus === 'unlocked' || oppStatus === 'unlocked') {
-                group = 'one-unlocked';
-            }
+            const tags = [];
+            if (myStatus === 'mastered' && oppStatus === 'mastered') tags.push('both-mastered');
+            if (myStatus === 'mastered') tags.push('a-mastered');
+            if (oppStatus === 'mastered') tags.push('b-mastered');
+            if (myStatus === 'unlocked') tags.push('a-unlocked');
+            if (oppStatus === 'unlocked') tags.push('b-unlocked');
 
             return {
                 id: mine.id,
@@ -211,9 +234,9 @@ export const BattleSystem = {
                 subcategory: mine.subcategory,
                 myStatus,
                 oppStatus,
-                group
+                tags
             };
-        }).filter(t => t.group !== null);
+        }).filter(t => t.tags.length > 0);
     },
 
     initFilterOptions() {
@@ -240,44 +263,55 @@ export const BattleSystem = {
             subs.map(s => `<option value="${s}">${s}</option>`).join('');
     },
 
-    // 新增：套用上方的分類邏輯 checkbox（移除雙方都熟練／加入僅一方解鎖）、
-    // 熟練方篩選（你熟練／對方熟練），以及大小分類篩選，回傳最終要顯示的招式清單
+    // 新增：套用上方 5 個分類 checkbox（只要招式符合其中一個「勾選中」的 tag 就顯示，OR 邏輯），
+    // 再套用大小分類篩選，回傳最終要顯示（也是最終會被拿去對戰）的招式清單
     getFilteredTricks() {
         const selectedCat = this.domFilterCategory ? this.domFilterCategory.value : '';
         const selectedSub = this.domFilterSubcategory ? this.domFilterSubcategory.value : '';
-        const masterSide = this.domFilterMasterSide ? this.domFilterMasterSide.value : '';
-        const excludeBothMastered = this.domExcludeBothMastered ? this.domExcludeBothMastered.checked : false;
-        const includeOneUnlocked = this.domIncludeOneUnlocked ? this.domIncludeOneUnlocked.checked : false;
+
+        const enabledTags = new Set();
+        if (this.domChkBothMastered && this.domChkBothMastered.checked) enabledTags.add('both-mastered');
+        if (this.domChkAMastered && this.domChkAMastered.checked) enabledTags.add('a-mastered');
+        if (this.domChkBMastered && this.domChkBMastered.checked) enabledTags.add('b-mastered');
+        if (this.domChkAUnlocked && this.domChkAUnlocked.checked) enabledTags.add('a-unlocked');
+        if (this.domChkBUnlocked && this.domChkBUnlocked.checked) enabledTags.add('b-unlocked');
 
         return this.comparedTricks.filter(t => {
             if (selectedCat && t.category !== selectedCat) return false;
             if (selectedSub && t.subcategory !== selectedSub) return false;
-
-            if (t.group === 'both-mastered' && excludeBothMastered) return false;
-            if (t.group === 'one-unlocked' && !includeOneUnlocked) return false;
-
-            if (masterSide === 'me' && !(t.group === 'one-mastered' && t.myStatus === 'mastered')) return false;
-            if (masterSide === 'opp' && !(t.group === 'one-mastered' && t.oppStatus === 'mastered')) return false;
-
-            return true;
+            return t.tags.some(tag => enabledTags.has(tag));
         });
+    },
+
+    // 依照 tags 決定要顯示的分類標籤文字（雙方都熟練時不重複顯示 A/B 熟練招）
+    getDisplayLabels(t) {
+        const labels = [];
+        if (t.tags.includes('both-mastered')) {
+            labels.push('雙方都熟練');
+        } else {
+            if (t.tags.includes('a-mastered')) labels.push('A 熟練招');
+            if (t.tags.includes('b-mastered')) labels.push('B 熟練招');
+        }
+        if (t.tags.includes('a-unlocked')) labels.push('A 已解鎖招');
+        if (t.tags.includes('b-unlocked')) labels.push('B 已解鎖招');
+        return labels;
+    },
+
+    getPriority(t) {
+        if (t.tags.includes('both-mastered')) return 0;
+        if (t.tags.includes('a-mastered') || t.tags.includes('b-mastered')) return 1;
+        return 2;
     },
 
     renderTrickList() {
         if (!this.domTrickList) return;
 
-        const groupLabels = {
-            'both-mastered': '雙方都熟練',
-            'one-mastered': '一方熟練',
-            'one-unlocked': '一方解鎖'
-        };
-        const groupOrder = { 'both-mastered': 0, 'one-mastered': 1, 'one-unlocked': 2 };
-
-        const filtered = this.getFilteredTricks().sort((a, b) => groupOrder[a.group] - groupOrder[b.group]);
+        const filtered = this.getFilteredTricks().sort((a, b) => this.getPriority(a) - this.getPriority(b));
 
         if (filtered.length === 0) {
             this.domTrickList.innerHTML = `<div style="text-align:center; color:#95a5a6; padding: 20px;">沒有符合條件的招式</div>`;
             this.updateSelectSummary();
+            this.syncSelectAllCheckbox();
             return;
         }
 
@@ -285,13 +319,22 @@ export const BattleSystem = {
             <div class="battle-item side-${t.myStatus} opp-${t.oppStatus}">
                 <input type="checkbox" class="battle-checkbox" data-id="${t.id}" ${this.selectedTrickIds.has(t.id) ? 'checked' : ''}>
                 <div class="battle-item-info">
-                    <span class="battle-group-tag">${groupLabels[t.group]}</span>
+                    ${this.getDisplayLabels(t).map(l => `<span class="battle-group-tag">${l}</span>`).join('')}
                     <strong>${t.name}</strong>
                 </div>
             </div>
         `).join('');
 
         this.updateSelectSummary();
+        this.syncSelectAllCheckbox();
+    },
+
+    syncSelectAllCheckbox() {
+        if (!this.domSelectAllCheckbox) return;
+        const visible = this.getFilteredTricks();
+        const selectedCount = visible.filter(t => this.selectedTrickIds.has(t.id)).length;
+        this.domSelectAllCheckbox.checked = visible.length > 0 && selectedCount === visible.length;
+        this.domSelectAllCheckbox.indeterminate = selectedCount > 0 && selectedCount < visible.length;
     },
 
     updateSelectSummary() {
@@ -301,15 +344,19 @@ export const BattleSystem = {
     },
 
     confirmSelection() {
-        if (this.selectedTrickIds.size === 0) {
+        // 對戰池只取「目前篩選條件下看得到、而且有勾選」的招式，
+        // 被 checkbox 篩選掉、目前沒顯示出來的招式即使之前勾過也不會算進去。
+        const visible = this.getFilteredTricks();
+        this.battlePool = visible.filter(t => this.selectedTrickIds.has(t.id));
+
+        if (this.battlePool.length === 0) {
             alert('請至少勾選一個招式再開始對戰！');
             return;
         }
 
-        this.battlePool = this.comparedTricks.filter(t => this.selectedTrickIds.has(t.id));
         this.battleHistory = [];
-        this.myMarks = new Array(KENDAMA_LETTERS.length).fill(false);
-        this.oppMarks = new Array(KENDAMA_LETTERS.length).fill(false);
+        this.myMarks = new Array(KEN_LETTERS.length).fill(false);
+        this.oppMarks = new Array(KEN_LETTERS.length).fill(false);
         this.gameOver = false;
 
         this.renderMarks();
@@ -320,13 +367,13 @@ export const BattleSystem = {
         this.drawNextTrick();
     },
 
-    // 用 K-E-N-D-A-M-A 七個字母代表每一邊的失誤次數，哪一邊沒接到就點亮那一邊的一個字母；
-    // 再點一次已經點亮的字母可以取消（修正誤觸）。點滿 7 個字母的那一邊輸了。
+    // 用 K-E-N 三個字母代表每一邊的失誤次數，哪一邊沒接到就點亮那一邊的一個字母；
+    // 再點一次已經點亮的字母可以取消（修正誤觸）。點滿 K-E-N 的那一邊輸了。
     renderMarks() {
         const renderSide = (container, marks) => {
             if (!container) return;
             container.innerHTML = marks.map((lit, i) => `
-                <button type="button" class="mark-btn ${lit ? 'lit' : ''}" data-index="${i}" ${this.gameOver ? 'disabled' : ''}>${KENDAMA_LETTERS[i]}</button>
+                <button type="button" class="mark-btn ${lit ? 'lit' : ''}" data-index="${i}" ${this.gameOver ? 'disabled' : ''}>${KEN_LETTERS[i]}</button>
             `).join('');
         };
         renderSide(this.domMyMarks, this.myMarks);
@@ -361,7 +408,7 @@ export const BattleSystem = {
 
         if (this.domResultMessage) {
             const text = myFull && oppFull
-                ? '平手！雙方同時點滿 7 個字母'
+                ? '平手！雙方同時點滿 K-E-N'
                 : (myFull ? `${this.opponentName || '對方'} 獲勝！` : '你獲勝了！');
             this.domResultMessage.textContent = text;
             this.domResultMessage.classList.remove('hidden');
