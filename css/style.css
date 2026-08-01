@@ -507,8 +507,12 @@ input.today-count::-webkit-inner-spin-button {
 .bulk-unlock-bar .btn-action {
     flex: 1 1 30%;
     min-width: 100px;
+    height: auto;
+    min-height: 42px;
+    padding: 8px 6px;
     font-size: 0.82rem;
-    padding: 0 6px;
+    line-height: 1.25;
+    white-space: normal;
 }
 
 .bulk-unlock-actions {
@@ -867,9 +871,16 @@ input.today-count::-webkit-inner-spin-button {
     }
 
     #page-library {
-        width: 80vw;
-        min-width: 700px;
-        max-width: 1200px;
+        width: 56vw;
+        min-width: 500px;
+        max-width: 840px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* 對戰頁面寬度縮小，不要跟首頁共用同一個 max-width */
+    #page-battle {
+        max-width: 630px;
         margin-left: auto;
         margin-right: auto;
     }

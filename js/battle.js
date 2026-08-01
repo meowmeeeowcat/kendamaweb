@@ -56,8 +56,19 @@ export const BattleSystem = {
             });
         }
 
-        [this.domChkBothMastered, this.domChkAMastered, this.domChkBMastered, this.domChkAUnlocked, this.domChkBUnlocked].forEach(chk => {
-            if (chk) chk.onchange = () => this.renderTrickList();
+        // 上方 5 個分類 checkbox 現在是「批次勾選／取消勾選」的動作，不是篩選器：
+        // 勾選就把符合這個 tag 的招式一起勾起來，取消勾選就把它們一起取消勾選，
+        // 但招式本身仍然留在畫面上，不會因此從清單裡消失。
+        this.groupCheckboxTags = [
+            [this.domChkBothMastered, 'both-mastered'],
+            [this.domChkAMastered, 'a-mastered'],
+            [this.domChkBMastered, 'b-mastered'],
+            [this.domChkAUnlocked, 'a-unlocked'],
+            [this.domChkBUnlocked, 'b-unlocked']
+        ];
+        this.groupCheckboxTags.forEach(([chk, tag]) => {
+            if (!chk) return;
+            chk.onchange = (e) => this.applyGroupCheckbox(tag, e.target.checked);
         });
 
         if (this.domFilterCategory) {
@@ -263,24 +274,31 @@ export const BattleSystem = {
             subs.map(s => `<option value="${s}">${s}</option>`).join('');
     },
 
-    // 新增：套用上方 5 個分類 checkbox（只要招式符合其中一個「勾選中」的 tag 就顯示，OR 邏輯），
-    // 再套用大小分類篩選，回傳最終要顯示（也是最終會被拿去對戰）的招式清單
+    // 新增：只套用大小分類篩選（真正的顯示/隱藏篩選），回傳目前看得到的招式清單。
+    // 上方 5 個分類 checkbox 不再是篩選器，改成批次勾選／取消勾選動作，見 applyGroupCheckbox()。
     getFilteredTricks() {
         const selectedCat = this.domFilterCategory ? this.domFilterCategory.value : '';
         const selectedSub = this.domFilterSubcategory ? this.domFilterSubcategory.value : '';
 
-        const enabledTags = new Set();
-        if (this.domChkBothMastered && this.domChkBothMastered.checked) enabledTags.add('both-mastered');
-        if (this.domChkAMastered && this.domChkAMastered.checked) enabledTags.add('a-mastered');
-        if (this.domChkBMastered && this.domChkBMastered.checked) enabledTags.add('b-mastered');
-        if (this.domChkAUnlocked && this.domChkAUnlocked.checked) enabledTags.add('a-unlocked');
-        if (this.domChkBUnlocked && this.domChkBUnlocked.checked) enabledTags.add('b-unlocked');
-
         return this.comparedTricks.filter(t => {
             if (selectedCat && t.category !== selectedCat) return false;
             if (selectedSub && t.subcategory !== selectedSub) return false;
-            return t.tags.some(tag => enabledTags.has(tag));
+            return true;
         });
+    },
+
+    // 新增：上方分類 checkbox 被勾選／取消勾選時呼叫。把符合這個 tag 的招式一起加入或移出
+    // selectedTrickIds，招式本身仍然留在畫面上（不會因此從清單消失），只有勾選狀態改變。
+    applyGroupCheckbox(tag, checked) {
+        this.comparedTricks.forEach(t => {
+            if (!t.tags.includes(tag)) return;
+            if (checked) {
+                this.selectedTrickIds.add(t.id);
+            } else {
+                this.selectedTrickIds.delete(t.id);
+            }
+        });
+        this.renderTrickList();
     },
 
     // 依照 tags 決定要顯示的分類標籤文字（雙方都熟練時不重複顯示 A/B 熟練招）
@@ -344,10 +362,9 @@ export const BattleSystem = {
     },
 
     confirmSelection() {
-        // 對戰池只取「目前篩選條件下看得到、而且有勾選」的招式，
-        // 被 checkbox 篩選掉、目前沒顯示出來的招式即使之前勾過也不會算進去。
-        const visible = this.getFilteredTricks();
-        this.battlePool = visible.filter(t => this.selectedTrickIds.has(t.id));
+        // 對戰池取「所有已勾選」的招式，不受目前大小分類篩選影響——
+        // 使用者切換分類篩選瀏覽、在不同分類底下勾選的招式都算數，不會因為切換篩選就漏掉。
+        this.battlePool = this.comparedTricks.filter(t => this.selectedTrickIds.has(t.id));
 
         if (this.battlePool.length === 0) {
             alert('請至少勾選一個招式再開始對戰！');
