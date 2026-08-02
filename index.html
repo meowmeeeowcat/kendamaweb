@@ -16,7 +16,7 @@
         <button id="btn-version" class="version-badge" title="查看更新紀錄">v-</button>
         <!-- 修改：選手資訊與切換帳號按鈕改成同一排，按鈕放在選手文字右側 -->
         <div class="header-account-row">
-            <div id="user-status" class="user-status">未登入 (功能皆可使用，進度將不儲存)</div>
+            <div id="user-status" class="user-status">未登入</div>
             <button id="btn-login-trigger" class="header-account-btn">帳號登入</button>
         </div>
     </header>
@@ -102,65 +102,71 @@
 
     <section id="page-library" class="app-content app-page hidden">
         <div class="page-card">
-            <div class="filter-group">
-                <select id="filter-category" class="app-select">
-                    <option value="">全部大分類</option>
-                </select>
-                <select id="filter-subcategory" class="app-select">
-                    <option value="">全部小分類</option>
-                </select>
-            </div>
+            <div class="library-layout">
+                <div class="library-main">
+                    <div id="library-list" class="library-list"></div>
+                </div>
 
-            <div class="sort-bar">
-                <label for="select-sort-mode" class="sort-label">排序依據</label>
-                <select id="select-sort-mode" class="app-select">
-                    <option value="default">預設順序</option>
-                    <option value="count-desc">練習次數：高到低</option>
-                    <option value="count-asc">練習次數：低到高</option>
-                    <option value="unlocked-first">已解鎖優先</option>
-                    <option value="locked-first">未解鎖優先</option>
-                    <option value="mastered-first">已熟練優先</option>
-                    <option value="mastered-last">已熟練放最後</option>
-                </select>
-            </div>
+                <div class="library-controls">
+                    <div class="filter-group">
+                        <select id="filter-category" class="app-select">
+                            <option value="">全部大分類</option>
+                        </select>
+                        <select id="filter-subcategory" class="app-select">
+                            <option value="">全部小分類</option>
+                        </select>
+                    </div>
 
-            <div class="bulk-unlock-bar">
-                <button id="btn-bulk-unlock-toggle" class="btn-action secondary">一鍵解鎖模式</button>
-                <button id="btn-master-remove-toggle" class="btn-action secondary">移除熟練招式</button>
-                <button id="btn-target-rules-toggle" class="btn-action secondary">目標次數設定</button>
-            </div>
-            <div id="bulk-unlock-actions" class="bulk-unlock-actions hidden">
-                <span class="bulk-unlock-tip">勾選要解鎖的招式，再按下方按鈕確認</span>
-                <div class="bulk-unlock-buttons">
-                    <button id="btn-bulk-unlock-confirm" class="btn-action success">解鎖</button>
-                    <button id="btn-bulk-unlock-cancel" class="btn-action secondary">取消</button>
+                    <div class="sort-bar">
+                        <label for="select-sort-mode" class="sort-label">排序依據</label>
+                        <select id="select-sort-mode" class="app-select">
+                            <option value="default">預設順序</option>
+                            <option value="count-desc">練習次數：高到低</option>
+                            <option value="count-asc">練習次數：低到高</option>
+                            <option value="unlocked-first">已解鎖優先</option>
+                            <option value="locked-first">未解鎖優先</option>
+                            <option value="mastered-first">已熟練優先</option>
+                            <option value="mastered-last">已熟練放最後</option>
+                        </select>
+                    </div>
+
+                    <div class="bulk-unlock-bar">
+                        <button id="btn-bulk-unlock-toggle" class="btn-action secondary">一鍵解鎖模式</button>
+                        <button id="btn-master-remove-toggle" class="btn-action secondary">移除熟練招式</button>
+                        <button id="btn-target-rules-toggle" class="btn-action secondary">目標次數設定</button>
+                    </div>
+                    <div id="bulk-unlock-actions" class="bulk-unlock-actions hidden">
+                        <span class="bulk-unlock-tip">勾選要解鎖的招式，再按下方按鈕確認</span>
+                        <div class="bulk-unlock-buttons">
+                            <button id="btn-bulk-unlock-confirm" class="btn-action success">解鎖</button>
+                            <button id="btn-bulk-unlock-cancel" class="btn-action secondary">取消</button>
+                        </div>
+                    </div>
+                    <div id="master-remove-actions" class="bulk-unlock-actions hidden">
+                        <span class="bulk-unlock-tip">勾選要移出「今日穩固招式」的已解鎖招式，再按下方按鈕確認</span>
+                        <div class="bulk-unlock-buttons">
+                            <button id="btn-master-remove-confirm" class="btn-action success">移出熟練招式</button>
+                            <button id="btn-master-remove-cancel" class="btn-action secondary">取消</button>
+                        </div>
+                    </div>
+
+                    <div id="bulk-select-all-row" class="bulk-select-all-row hidden">
+                        <input type="checkbox" id="chk-bulk-select-all" class="bulk-select-all-checkbox">
+                        <label for="chk-bulk-select-all">全選</label>
+                    </div>
+                    <div id="master-select-all-row" class="bulk-select-all-row hidden">
+                        <input type="checkbox" id="chk-master-select-all" class="bulk-select-all-checkbox">
+                        <label for="chk-master-select-all">全選</label>
+                    </div>
                 </div>
             </div>
-            <div id="master-remove-actions" class="bulk-unlock-actions hidden">
-                <span class="bulk-unlock-tip">勾選要移出「今日穩固招式」的已解鎖招式，再按下方按鈕確認</span>
-                <div class="bulk-unlock-buttons">
-                    <button id="btn-master-remove-confirm" class="btn-action success">移出熟練招式</button>
-                    <button id="btn-master-remove-cancel" class="btn-action secondary">取消</button>
-                </div>
-            </div>
-
-            <div id="bulk-select-all-row" class="bulk-select-all-row hidden">
-                <input type="checkbox" id="chk-bulk-select-all" class="bulk-select-all-checkbox">
-                <label for="chk-bulk-select-all">全選</label>
-            </div>
-            <div id="master-select-all-row" class="bulk-select-all-row hidden">
-                <input type="checkbox" id="chk-master-select-all" class="bulk-select-all-checkbox">
-                <label for="chk-master-select-all">全選</label>
-            </div>
-
-            <div id="library-list" class="library-list"></div>
         </div>
     </section>
 
     <section id="page-battle" class="app-content app-page hidden">
         <div id="battle-stage-input" class="page-card">
             <p class="modal-tip">輸入對方的暱稱，系統會比對雙方的招式庫，篩選出可以拿來對戰的招式。</p>
-            <input type="text" id="battle-opponent-input" placeholder="請輸入對方的暱稱 (例如: 貓貓)">
+            <input type="text" id="battle-opponent-input" placeholder="請輸入對方的暱稱">
             <div id="battle-input-error" class="battle-error"></div>
             <button id="btn-battle-start" class="btn-action success">開始比對</button>
         </div>
@@ -238,7 +244,7 @@
         <div class="modal-content">
             <h3>帳號登入</h3>
             <p class="modal-tip">輸入您的獨特暱稱，系統將會為您在雲端保存專屬練習紀錄。</p>
-            <input type="text" id="login-username" placeholder="請輸入您的暱稱 (例如: 貓貓)">
+            <input type="text" id="login-username" placeholder="請輸入您的暱稱">
             <div class="modal-actions">
                 <button id="btn-login-submit" class="btn-action success">登入</button>
                 <button id="btn-login-close" class="btn-action secondary">取消</button>

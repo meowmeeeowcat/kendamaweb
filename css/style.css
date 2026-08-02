@@ -43,7 +43,7 @@ body {
     justify-content: center;
     align-items: center;
     position: relative; /* 設為相對定位，以便子項目能精準定位到右下角 */
-    height: 112px;        /* 手機板放大標題區塊，讓選手資訊與切換帳號有比較大的範圍 */
+    height: 124px;        /* 手機板放大標題區塊，讓選手資訊與切換帳號有比較大的範圍，並且再往下移一點 */
 }
 
 .app-header h1 { 
@@ -62,14 +62,14 @@ body {
 .header-account-row {
     position: absolute;
     right: 16px;
-    bottom: 4px;    /* 手機板往下移一點 */
+    bottom: 0px;    /* 手機板再往下移一點 */
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
 }
 
 .user-status { 
-    font-size: 1.15rem;              /* 選手字樣調大 */
+    font-size: 0.85rem;              /* 手機板再縮小一點 */
     color: rgba(255, 255, 255, 0.95); 
     font-weight: 700;
 }
@@ -80,8 +80,8 @@ body {
     color: #14b8a6;
     border: none;
     border-radius: 999px;
-    padding: 7px 16px;      /* 手機板放大按鈕範圍 */
-    font-size: 0.82rem;     /* 手機板放大文字 */
+    padding: 4px 10px;      /* 手機板再縮小一點 */
+    font-size: 0.66rem;     /* 手機板再縮小一點 */
     font-weight: 700;
     cursor: pointer;
     white-space: nowrap;
@@ -724,7 +724,7 @@ input.today-count::-webkit-inner-spin-button {
 }
 
 .toolbar-label {
-    font-size: 0.7rem;
+    font-size: 1.02rem;
     font-weight: 600;
 }
 
@@ -863,7 +863,7 @@ input.today-count::-webkit-inner-spin-button {
     }
 
     .toolbar-label {
-        font-size: 0.78rem;
+        font-size: 1.1rem;
     }
 
     .modal-content {
@@ -885,8 +885,22 @@ input.today-count::-webkit-inner-spin-button {
         margin-right: auto;
     }
 
+    /* 電腦版：招式清單放大欄（左側），篩選/排序/一鍵解鎖等操作選項移到窄欄（右側），
+       操作選項欄裡的按鈕都改成單欄堆疊、各自佔滿欄寬，不會再互相擠壓文字。 */
+    .library-layout {
+        display: grid;
+        grid-template-columns: 1fr 280px;
+        gap: 20px;
+        align-items: start;
+    }
+
+    .library-main,
+    .library-controls {
+        min-width: 0;
+    }
+
     #page-library .library-list {
-        max-height: 42vh;
+        max-height: 65vh;
     }
 
     /* 電腦版空間夠寬，招式名稱不換行；極端超長的名稱才用省略號收尾 */
@@ -894,6 +908,16 @@ input.today-count::-webkit-inner-spin-button {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+    }
+
+    /* 右側操作欄：一鍵解鎖模式那排按鈕改成單欄堆疊，每顆都佔滿欄寬，不再是三顆擠一排 */
+    .library-controls .bulk-unlock-bar {
+        flex-direction: column;
+    }
+
+    .library-controls .bulk-unlock-bar .btn-action {
+        width: 100%;
+        min-width: 0;
     }
 
     /* 較寬螢幕：大分類／小分類／招式三個選單都在同一排，招式選單改用剩餘空間伸展 */

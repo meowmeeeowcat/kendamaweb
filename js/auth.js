@@ -23,7 +23,7 @@ export const AuthSystem = {
             this.loginAs(lastUser);
         } else {
             // 核心修正：沒登入時，直接使用本地 254 個招式驅動網頁，功能完全正常開放！
-            if (this.domStatus) this.domStatus.innerText = "未登入 (功能皆可使用，進度將不儲存)";
+            if (this.domStatus) this.domStatus.innerText = "未登入";
             AppController.onUserSwitched();
         }
     },
@@ -78,7 +78,7 @@ export const AuthSystem = {
         window.currentUser = null;
         localStorage.removeItem('kendama_last_user');
 
-        if (this.domStatus) this.domStatus.innerText = "未登入 (功能皆可使用，進度將不儲存)";
+        if (this.domStatus) this.domStatus.innerText = "未登入";
         if (this.domTrigger) this.domTrigger.innerText = "帳號登入";
 
         TrickLibrary.resetLocalTricks();
