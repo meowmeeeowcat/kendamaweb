@@ -62,7 +62,7 @@ body {
 .header-account-row {
     position: absolute;
     right: 16px;
-    bottom: 0px;    /* 手機板再往下移一點 */
+    bottom: 8px;    /* 手機板往上移一點，避免貼著邊緣 */
     display: flex;
     align-items: center;
     gap: 8px;
@@ -700,13 +700,16 @@ input.today-count::-webkit-inner-spin-button {
     height: 64px;
     background-color: #ffffff;
     display: flex;
+    justify-content: center;   /* 手機板：按鈕往中間靠攏，不貼著左右邊緣 */
+    gap: 28px;
     border-top: 1px solid #e5e7eb;
     box-shadow: 0 -2px 10px rgba(0,0,0,0.06);
     z-index: 999;
 }
 
 .toolbar-btn {
-    flex: 1;
+    flex: 0 0 auto;
+    width: 76px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -832,6 +835,10 @@ input.today-count::-webkit-inner-spin-button {
         bottom: 12px;   /* 手機板往下移的調整只套用於手機板，電腦版維持原本位置 */
     }
 
+    .user-status {
+        font-size: 1.2rem;   /* 電腦版「選手:」文字放大，跟手機板縮小的調整分開 */
+    }
+
     .header-account-btn {
         padding: 8px 20px;      /* 電腦版：切換帳號按鈕放大 */
         font-size: 0.9rem;
@@ -853,6 +860,13 @@ input.today-count::-webkit-inner-spin-button {
         border: 1px solid #e5e7eb;
         border-bottom: none;
         height: 72px;
+        justify-content: space-between;   /* 手機板的置中靠攏調整只套用於手機板，電腦版恢復平均分布 */
+        gap: 0;
+    }
+
+    .toolbar-btn {
+        flex: 1;   /* 手機板的固定寬度調整只套用於手機板，電腦版恢復平均分配寬度 */
+        width: auto;
     }
 
     .toolbar-home-circle {
@@ -863,7 +877,7 @@ input.today-count::-webkit-inner-spin-button {
     }
 
     .toolbar-label {
-        font-size: 1.1rem;
+        font-size: 1.3rem;
     }
 
     .modal-content {
@@ -885,13 +899,22 @@ input.today-count::-webkit-inner-spin-button {
         margin-right: auto;
     }
 
-    /* 電腦版：招式清單放大欄（左側），篩選/排序/一鍵解鎖等操作選項移到窄欄（右側），
-       操作選項欄裡的按鈕都改成單欄堆疊、各自佔滿欄寬，不會再互相擠壓文字。 */
+    /* 電腦版：篩選/排序/一鍵解鎖等操作選項移到寬一點的欄（左側），
+       招式清單移到右側；操作欄按鈕改回同一排橫向排列，欄位夠寬所以不會換行。 */
     .library-layout {
         display: grid;
-        grid-template-columns: 1fr 280px;
+        grid-template-columns: 400px 1fr;
+        grid-template-areas: "controls main";
         gap: 20px;
         align-items: start;
+    }
+
+    .library-main {
+        grid-area: main;
+    }
+
+    .library-controls {
+        grid-area: controls;
     }
 
     .library-main,
@@ -910,22 +933,28 @@ input.today-count::-webkit-inner-spin-button {
         text-overflow: ellipsis;
     }
 
-    /* 右側操作欄：一鍵解鎖模式那排按鈕改成單欄堆疊，每顆都佔滿欄寬，不再是三顆擠一排 */
-    .library-controls .bulk-unlock-bar {
-        flex-direction: column;
-    }
-
-    .library-controls .bulk-unlock-bar .btn-action {
-        width: 100%;
-        min-width: 0;
-    }
-
     /* 較寬螢幕：大分類／小分類／招式三個選單都在同一排，招式選單改用剩餘空間伸展 */
     .trick-picker {
         flex-wrap: nowrap;
     }
 
     .trick-picker select:nth-of-type(3) {
+        flex: 1 1 auto;
+    }
+
+    /* 手機板的血量欄置中換行調整只套用於手機板，電腦版恢復原本三欄同一排的排版 */
+    .battle-marks-row {
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+    }
+
+    .battle-marks-row > .battle-marks-col:nth-child(1),
+    .battle-marks-row > .battle-marks-col:nth-child(3),
+    .battle-marks-row > .battle-draw-center {
+        order: 0;
+    }
+
+    .battle-marks-row > .battle-draw-center {
         flex: 1 1 auto;
     }
 }
@@ -1174,9 +1203,25 @@ input.today-count::-webkit-inner-spin-button {
 
 .battle-marks-row {
     display: flex;
+    flex-wrap: wrap;              /* 手機板：讓招式名稱換到下一排，不要夾在血量中間 */
     align-items: flex-start;
+    justify-content: center;
     gap: 10px;
     margin-bottom: 12px;
+}
+
+/* 手機板：兩邊的 KEN 血量欄放在同一排，招式名稱／按鈕那塊改到下一排、佔滿整排寬度 */
+.battle-marks-row > .battle-marks-col:nth-child(1) {
+    order: 1;
+}
+
+.battle-marks-row > .battle-marks-col:nth-child(3) {
+    order: 2;
+}
+
+.battle-marks-row > .battle-draw-center {
+    order: 3;
+    flex: 1 1 100%;
 }
 
 .battle-marks-col {
