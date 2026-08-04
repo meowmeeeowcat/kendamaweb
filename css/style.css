@@ -158,6 +158,15 @@ body {
     margin-bottom: 8px;
 }
 
+/* 手機板：招式庫的選擇分類區域要在招式清單「上面」，但 HTML 裡清單先寫、控制項後寫，
+   用 column-reverse 把兩者的視覺順序反過來（只影響這兩個區塊彼此的順序，
+   .library-controls 內部各個篩選/按鈕的相對順序不受影響）。電腦版改用 grid 版面，
+   這條 flex 規則會被覆蓋掉，兩邊互不影響。 */
+.library-layout {
+    display: flex;
+    flex-direction: column-reverse;
+}
+
 .page-placeholder p {
     font-size: 0.9rem;
     color: var(--text-muted);
@@ -851,7 +860,7 @@ input.today-count::-webkit-inner-spin-button {
 
     /* 桌面上底部工具列改成置中的浮動工具列，不用整條貼滿螢幕邊緣 */
     .bottom-toolbar {
-        max-width: 500px;
+        max-width: 700px;
         margin: 0 auto;
         left: 50%;
         right: auto;
@@ -885,9 +894,9 @@ input.today-count::-webkit-inner-spin-button {
     }
 
     #page-library {
-        width: 56vw;
-        min-width: 500px;
-        max-width: 840px;
+        width: 78vw;
+        min-width: 640px;
+        max-width: 1160px;
         margin-left: auto;
         margin-right: auto;
     }
@@ -899,11 +908,21 @@ input.today-count::-webkit-inner-spin-button {
         margin-right: auto;
     }
 
-    /* 電腦版：篩選/排序/一鍵解鎖等操作選項移到寬一點的欄（左側），
-       招式清單移到右側；操作欄按鈕改回同一排橫向排列，欄位夠寬所以不會換行。 */
+    /* 電腦版：篩選/排序/一鍵解鎖等操作選項放在窄一點的左欄，招式清單放大加寬到右欄。
+       左右欄拆成兩張獨立卡片（各自有白底/圓角/陰影），不再共用同一張大卡片；
+       左欄的高度只跟著自己的內容走（align-items:start），不會被右邊很長的清單撐高。
+       外層原本包住整體的 .page-card 在這裡改成純版面容器，不再顯示自己的卡片外觀，
+       避免卡片外面還套一層卡片。 */
+    #page-library > .page-card {
+        background: transparent;
+        box-shadow: none;
+        padding: 0;
+        margin-bottom: 0;
+    }
+
     .library-layout {
         display: grid;
-        grid-template-columns: 400px 1fr;
+        grid-template-columns: 380px 1fr;
         grid-template-areas: "controls main";
         gap: 20px;
         align-items: start;
@@ -911,10 +930,18 @@ input.today-count::-webkit-inner-spin-button {
 
     .library-main {
         grid-area: main;
+        background-color: #ffffff;
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.06);
     }
 
     .library-controls {
         grid-area: controls;
+        background-color: #ffffff;
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.06);
     }
 
     .library-main,
@@ -923,7 +950,7 @@ input.today-count::-webkit-inner-spin-button {
     }
 
     #page-library .library-list {
-        max-height: 65vh;
+        max-height: 68vh;
     }
 
     /* 電腦版空間夠寬，招式名稱不換行；極端超長的名稱才用省略號收尾 */
