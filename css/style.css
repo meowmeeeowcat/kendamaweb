@@ -871,6 +871,7 @@ input.today-count::-webkit-inner-spin-button {
         height: 72px;
         justify-content: space-between;   /* 手機板的置中靠攏調整只套用於手機板，電腦版恢復平均分布 */
         gap: 0;
+        width: 20%;
     }
 
     .toolbar-btn {
@@ -1004,6 +1005,10 @@ input.today-count::-webkit-inner-spin-button {
 
     body {
         font-size: 16px;
+    }
+    .bottom-toolbar {
+        width: 20%;
+        max-width: 900px;   /* 或想要的寬度，跟著大螢幕放寬 */
     }
 
     .trick-name {
