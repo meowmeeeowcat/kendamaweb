@@ -471,12 +471,14 @@ export const TrickLibrary = {
             });
 
             // 全域文件每次都是依照目前完整的本地狀態重新產生，本身就是完整快照，
-            // 直接覆寫可以避免舊版「已改回預設值」的招式一直殘留在雲端。
+            // 針對 tricks/customTricks/targetRules 這三個欄位直接整個換掉，可以避免舊版
+            // 「已改回預設值」的招式一直殘留在雲端。用 mergeFields 只覆蓋這三個欄位，
+            // 其餘欄位（例如登入用的 passwordHash）完全不會被動到，不會被整份覆蓋掉。
             await setDoc(userDocRef, {
                 tricks: tricksMap,
                 customTricks: customTricksArray,
                 targetRules: Array.isArray(this.targetRules) && this.targetRules.length > 0 ? this.targetRules : []
-            });
+            }, { mergeFields: ['tricks', 'customTricks', 'targetRules'] });
 
             if (hasTodayData) {
                 await setDoc(dayDocRef, { logs: todayLogs });

@@ -243,8 +243,10 @@
     <div id="modal-login" class="modal hidden">
         <div class="modal-content">
             <h3>帳號登入</h3>
-            <p class="modal-tip">輸入您的獨特暱稱，系統將會為您在雲端保存專屬練習紀錄。</p>
+            <p class="modal-tip">輸入您的暱稱與密碼。第一次使用這個暱稱會自動建立新帳號；如果是還沒設定過密碼的舊帳號，這次輸入的密碼會直接設為登入密碼。</p>
             <input type="text" id="login-username" placeholder="請輸入您的暱稱">
+            <input type="password" id="login-password" placeholder="請輸入密碼">
+            <div id="login-error" class="battle-error"></div>
             <div class="modal-actions">
                 <button id="btn-login-submit" class="btn-action success">登入</button>
                 <button id="btn-login-close" class="btn-action secondary">取消</button>
