@@ -243,7 +243,7 @@
     <div id="modal-login" class="modal hidden">
         <div class="modal-content">
             <h3>帳號登入</h3>
-            <p class="modal-tip">輸入您的暱稱與密碼。第一次使用這個暱稱會自動建立新帳號；如果是還沒設定過密碼的舊帳號，這次輸入的密碼會直接設為登入密碼。</p>
+            <p class="modal-tip">輸入您的暱稱與密碼（密碼至少 6 個字元）。第一次使用這個暱稱會自動建立新帳號；如果是還沒設定過密碼的舊帳號，這次輸入的密碼會直接設為登入密碼。</p>
             <input type="text" id="login-username" placeholder="請輸入您的暱稱">
             <input type="password" id="login-password" placeholder="請輸入密碼">
             <div id="login-error" class="battle-error"></div>
@@ -280,7 +280,8 @@
         {
           "imports": {
             "firebase/app": "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js",
-            "firebase/firestore": "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"
+            "firebase/firestore": "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js",
+            "firebase/auth": "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js"
           }
         }
     </script>

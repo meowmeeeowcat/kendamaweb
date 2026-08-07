@@ -3,6 +3,16 @@
 // 主頁面會自動顯示最新版本號，點擊後可以看到完整的更新歷史。
 export const CHANGELOG = [
     {
+        version: "1.8.0",
+        date: "2026-07-21",
+        changes: [
+            "登入系統改接 Firebase Authentication：暱稱會對應成「暱稱@kendama.local」這種格式正確、非真實信箱的帳號給 Firebase 驗證用，密碼由 Firebase 保管，不再自己存密碼雜湊值",
+            "全新暱稱會自動註冊；還沒設定過密碼的舊帳號，第一次登入輸入的密碼會直接補設為登入密碼；密碼錯誤會被擋下來",
+            "登入 session 改用 Firebase Authentication 自己的機制記住登入狀態，不再依賴自己寫的 localStorage 記錄",
+            "底部工具列電腦版寬度設定改回使用者提供的版本（width: 20%）"
+        ]
+    },
+    {
         version: "1.7.0",
         date: "2026-07-21",
         changes: [

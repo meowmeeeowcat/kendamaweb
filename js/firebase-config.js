@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 
 // 請把你在【步驟 1-4】複製的專案金鑰貼在下面替換：
 const firebaseConfig = {
@@ -20,3 +21,5 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 // 初始化 Firestore 資料庫並匯出
 export const db = getFirestore(app);
+// 初始化 Firebase Authentication 並匯出
+export const auth = getAuth(app);
